@@ -4,3 +4,5 @@
 .env.production
 node_modules/
 uploads/
+
+/generated/prisma

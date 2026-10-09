@@ -1,0 +1,262 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+
+generator client {
+  provider = "prisma-client-js"
+
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String?
+  contact   String?
+  role      UserRole @default(USER)
+
+  orders        Order[]
+  reviews       Review[]
+  wishlistItems Wishlist[]
+  notifications Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  discount    Decimal  @default(0) @db.Decimal(5, 2)
+
+  categoryLevel1 String
+  categoryLevel2 String?
+  categoryLevel3 String?
+
+  unit   String @default("piece")
+  stock  Int    @default(0)
+  images Json?
+
+  weight String?
+
+  averageRating Decimal @default(0) @db.Decimal(2, 1)
+  totalReviews  Int     @default(0)
+
+  isActive    Boolean @default(true)
+  tags        Json?
+  brand       String?
+  isFeatured  Boolean @default(false)
+  isTrending  Boolean @default(false)
+  isNewArrival Boolean @default(false)
+
+  featuredOrder   Int @default(0)
+  trendingOrder  Int @default(0)
+  newArrivalOrder Int @default(0)
+
+  wishList Boolean @default(false)
+  size     Json?
+
+  orderItems OrderItem[]
+  reviews    Review[]
+  wishlists  Wishlist[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("products")
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  orderNumber     String      @unique
+  userId          Int
+  status          OrderStatus @default(CONFIRMED)
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  paymentIntentId String?
+  paymentMethod   String?
+  shippingAddress String?
+
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+  FAILED
+}
+
+model OrderItem {
+  id          Int     @id @default(autoincrement())
+  orderId     Int
+  productId   Int
+  productName String
+  image       String?
+  quantity    Int     @default(1)
+  price       Decimal @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("order_items")
+}
+
+model Review {
+  id              Int      @id @default(autoincrement())
+  productId       Int
+  userId          Int
+  userName        String
+  userEmail       String?
+  rating          Int
+  title           String?
+  comment         String
+  verifiedPurchase Boolean @default(false)
+  isApproved      Boolean @default(true)
+  helpfulCount    Int      @default(0)
+
+  reply     String?
+  repliedAt DateTime?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("reviews")
+}
+
+model Wishlist {
+  id        Int @id @default(autoincrement())
+  userId    Int
+  productId Int
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
+  @@map("wishlists")
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  title       String
+  description String?
+  message     String?
+  type        NotificationType
+  read        Boolean          @default(false)
+  userId      Int?
+  metadata    Json?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  ORDER
+  PRODUCT
+  SYSTEM
+  CONTACT
+  BOOKING
+}
+
+model Contact {
+  id      String @id @default(uuid())
+  name    String
+  email   String
+  message String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contacts")
+}
+
+model ChatMessage {
+  id          String      @id @default(uuid())
+  sessionId   String
+  message     String
+  sender      ChatSender
+  messageType MessageType @default(TEXT)
+  metadata    Json?
+  isRead      Boolean     @default(false)
+  timestamp   DateTime    @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([timestamp])
+  @@index([sender])
+
+  @@map("chat_messages")
+}
+
+enum ChatSender {
+  USER
+  BOT
+}
+
+enum MessageType {
+  TEXT
+  QUICK_REPLY
+  IMAGE
+  FILE
+}
+
+model Category {
+  id          String  @id @default(uuid())
+  name        String
+  slug        String  @unique
+  level       Int
+  parentId    String?
+  description String?
+  sortOrder   Int     @default(0)
+  isActive    Boolean @default(true)
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryHierarchy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
