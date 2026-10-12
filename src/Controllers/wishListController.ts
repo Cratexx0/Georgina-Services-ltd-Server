@@ -6,197 +6,220 @@ import type { AuthRequest } from "../Middleware/Middelware.js";
 
 // Helper to get user ID safely (supports authenticated req.user or fallback testing)
 const getUserId = (req: AuthRequest): number => {
-  if (req.user && req.user.id) {
-    return Number(req.user.id);
-  }
-  return 1; // Fallback for testing if no auth header provided
+	if (req.user && req.user.id) {
+		return Number(req.user.id);
+	}
+	return 1; // Fallback for testing if no auth header provided
 };
 
 // Add product to wishlist
-export const addToWishlist = async (req: AuthRequest, res: Response): Promise<any> => {
-  try {
-    const { productId } = req.body;
-    const userId = getUserId(req);
-    const parsedProductId = Number(productId);
+export const addToWishlist = async (
+	req: AuthRequest,
+	res: Response,
+): Promise<any> => {
+	try {
+		const { productId } = req.body;
+		const userId = getUserId(req);
+		const parsedProductId = Number(productId);
 
-    if (isNaN(parsedProductId)) {
-      return res.status(400).json({ message: "Invalid product ID format" });
-    }
+		if (isNaN(parsedProductId)) {
+			return res.status(400).json({ message: "Invalid product ID format" });
+		}
 
-    // Check if product exists
-    const product = await prisma.product.findUnique({ where: { id: parsedProductId } });
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+		// Check if product exists
+		const product = await prisma.product.findUnique({
+			where: { id: parsedProductId },
+		});
+		if (!product) {
+			return res.status(404).json({ message: "Product not found" });
+		}
 
-    // Check if already in wishlist using Prisma's compound unique constraint
-    const existing = await prisma.wishlist.findUnique({
-      where: {
-        userId_productId: {
-          userId,
-          productId: parsedProductId,
-        },
-      },
-    });
+		// Check if already in wishlist using Prisma's compound unique constraint
+		const existing = await prisma.wishlist.findUnique({
+			where: {
+				userId_productId: {
+					userId,
+					productId: parsedProductId,
+				},
+			},
+		});
 
-    if (existing) {
-      return res.status(400).json({ message: "Product already in wishlist" });
-    }
+		if (existing) {
+			return res.status(400).json({ message: "Product already in wishlist" });
+		}
 
-    // Add to wishlist
-    const wishlistItem = await prisma.wishlist.create({
-      data: {
-        userId,
-        productId: parsedProductId,
-      },
-    });
+		// Add to wishlist
+		const wishlistItem = await prisma.wishlist.create({
+			data: {
+				userId,
+				productId: parsedProductId,
+			},
+		});
 
-    return res.status(201).json({
-      message: "Added to wishlist",
-      wishlistItem,
-    });
-  } catch (error: any) {
-    console.error("Error adding to wishlist:", error);
-    return res.status(500).json({
-      message: "Error adding to wishlist",
-      error: error.message,
-    });
-  }
+		return res.status(201).json({
+			message: "Added to wishlist",
+			wishlistItem,
+		});
+	} catch (error: any) {
+		console.error("Error adding to wishlist:", error);
+		return res.status(500).json({
+			message: "Error adding to wishlist",
+			error: error.message,
+		});
+	}
 };
 
 // Get user's wishlist
-export const getWishlist = async (req: AuthRequest, res: Response): Promise<any> => {
-  try {
-    const userId = getUserId(req);
+export const getWishlist = async (
+	req: AuthRequest,
+	res: Response,
+): Promise<any> => {
+	try {
+		const userId = getUserId(req);
 
-    // Get wishlist items with included product details
-    const wishlistItems = await prisma.wishlist.findMany({
-      where: { userId },
-      include: {
-        product: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
+		// Get wishlist items with included product details
+		const wishlistItems = await prisma.wishlist.findMany({
+			where: { userId },
+			include: {
+				product: true,
+			},
+			orderBy: { createdAt: "desc" },
+		});
 
-    if (!wishlistItems || wishlistItems.length === 0) {
-      return res.status(200).json({
-        products: [],
-        count: 0,
-        message: "Wishlist is empty",
-      });
-    }
+		if (!wishlistItems || wishlistItems.length === 0) {
+			return res.status(200).json({
+				products: [],
+				count: 0,
+				message: "Wishlist is empty",
+			});
+		}
 
-    // Filter active products and map with wishlist metadata
-    const wishlistProducts = wishlistItems
-      .filter((item) => item.product && item.product.isActive)
-      .map((item) => ({
-        ...item.product,
-        addedAt: item.createdAt,
-        wishlistId: item.id,
-      }));
+		// Filter active products and map with wishlist metadata
+		const wishlistProducts = wishlistItems
+			.filter(
+				(item: { product: { isActive: any } }) =>
+					item.product && item.product.isActive,
+			)
+			.map((item: { product: any; createdAt: any; id: any }) => ({
+				...item.product,
+				addedAt: item.createdAt,
+				wishlistId: item.id,
+			}));
 
-    return res.status(200).json({
-      products: wishlistProducts,
-      count: wishlistProducts.length,
-      message: wishlistProducts.length > 0 ? "Wishlist retrieved" : "Wishlist is empty",
-    });
-  } catch (error: any) {
-    console.error("Error getting wishlist:", error);
-    return res.status(500).json({
-      message: "Error getting wishlist",
-      error: error.message,
-    });
-  }
+		return res.status(200).json({
+			products: wishlistProducts,
+			count: wishlistProducts.length,
+			message:
+				wishlistProducts.length > 0
+					? "Wishlist retrieved"
+					: "Wishlist is empty",
+		});
+	} catch (error: any) {
+		console.error("Error getting wishlist:", error);
+		return res.status(500).json({
+			message: "Error getting wishlist",
+			error: error.message,
+		});
+	}
 };
 
 // Check if product is in wishlist
-export const checkWishlist = async (req: AuthRequest, res: Response): Promise<any> => {
-  try {
-    const { productId } = req.params;
-    const userId = getUserId(req);
-    const parsedProductId = Number(productId);
+export const checkWishlist = async (
+	req: AuthRequest,
+	res: Response,
+): Promise<any> => {
+	try {
+		const { productId } = req.params;
+		const userId = getUserId(req);
+		const parsedProductId = Number(productId);
 
-    if (isNaN(parsedProductId)) {
-      return res.status(400).json({ message: "Invalid product ID format" });
-    }
+		if (isNaN(parsedProductId)) {
+			return res.status(400).json({ message: "Invalid product ID format" });
+		}
 
-    const wishlistItem = await prisma.wishlist.findUnique({
-      where: {
-        userId_productId: {
-          userId,
-          productId: parsedProductId,
-        },
-      },
-    });
+		const wishlistItem = await prisma.wishlist.findUnique({
+			where: {
+				userId_productId: {
+					userId,
+					productId: parsedProductId,
+				},
+			},
+		});
 
-    return res.status(200).json({
-      inWishlist: !!wishlistItem,
-      message: "Wishlist status checked",
-    });
-  } catch (error: any) {
-    console.error("Error checking wishlist:", error);
-    return res.status(500).json({
-      message: "Error checking wishlist",
-      error: error.message,
-    });
-  }
+		return res.status(200).json({
+			inWishlist: !!wishlistItem,
+			message: "Wishlist status checked",
+		});
+	} catch (error: any) {
+		console.error("Error checking wishlist:", error);
+		return res.status(500).json({
+			message: "Error checking wishlist",
+			error: error.message,
+		});
+	}
 };
 
 // Remove product from wishlist
-export const removeFromWishlist = async (req: AuthRequest, res: Response): Promise<any> => {
-  try {
-    const { productId } = req.params;
-    const userId = getUserId(req);
-    const parsedProductId = Number(productId);
+export const removeFromWishlist = async (
+	req: AuthRequest,
+	res: Response,
+): Promise<any> => {
+	try {
+		const { productId } = req.params;
+		const userId = getUserId(req);
+		const parsedProductId = Number(productId);
 
-    if (isNaN(parsedProductId)) {
-      return res.status(400).json({ message: "Invalid product ID format" });
-    }
+		if (isNaN(parsedProductId)) {
+			return res.status(400).json({ message: "Invalid product ID format" });
+		}
 
-    try {
-      await prisma.wishlist.delete({
-        where: {
-          userId_productId: {
-            userId,
-            productId: parsedProductId,
-          },
-        },
-      });
-    } catch (err) {
-      // Prisma throws P2025 if record to delete is not found
-      return res.status(404).json({ message: "Product not found in wishlist" });
-    }
+		try {
+			await prisma.wishlist.delete({
+				where: {
+					userId_productId: {
+						userId,
+						productId: parsedProductId,
+					},
+				},
+			});
+		} catch (err) {
+			// Prisma throws P2025 if record to delete is not found
+			return res.status(404).json({ message: "Product not found in wishlist" });
+		}
 
-    return res.status(200).json({
-      message: "Removed from wishlist",
-    });
-  } catch (error: any) {
-    console.error("Error removing from wishlist:", error);
-    return res.status(500).json({
-      message: "Error removing from wishlist",
-      error: error.message,
-    });
-  }
+		return res.status(200).json({
+			message: "Removed from wishlist",
+		});
+	} catch (error: any) {
+		console.error("Error removing from wishlist:", error);
+		return res.status(500).json({
+			message: "Error removing from wishlist",
+			error: error.message,
+		});
+	}
 };
 
 // Clear wishlist
-export const clearWishlist = async (req: AuthRequest, res: Response): Promise<any> => {
-  try {
-    const userId = getUserId(req);
+export const clearWishlist = async (
+	req: AuthRequest,
+	res: Response,
+): Promise<any> => {
+	try {
+		const userId = getUserId(req);
 
-    const deleteResult = await prisma.wishlist.deleteMany({
-      where: { userId },
-    });
+		const deleteResult = await prisma.wishlist.deleteMany({
+			where: { userId },
+		});
 
-    return res.status(200).json({
-      message: "Wishlist cleared",
-      deletedCount: deleteResult.count,
-    });
-  } catch (error: any) {
-    console.error("Error clearing wishlist:", error);
-    return res.status(500).json({
-      message: "Error clearing wishlist",
-      error: error.message,
-    });
-  }
+		return res.status(200).json({
+			message: "Wishlist cleared",
+			deletedCount: deleteResult.count,
+		});
+	} catch (error: any) {
+		console.error("Error clearing wishlist:", error);
+		return res.status(500).json({
+			message: "Error clearing wishlist",
+			error: error.message,
+		});
+	}
 };
