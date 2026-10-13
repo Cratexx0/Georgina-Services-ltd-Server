@@ -19,7 +19,9 @@ const addToWishlist = async (req, res) => {
             return res.status(400).json({ message: "Invalid product ID format" });
         }
         // Check if product exists
-        const product = await prisma_1.prisma.product.findUnique({ where: { id: parsedProductId } });
+        const product = await prisma_1.prisma.product.findUnique({
+            where: { id: parsedProductId },
+        });
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
         }
@@ -86,7 +88,9 @@ const getWishlist = async (req, res) => {
         return res.status(200).json({
             products: wishlistProducts,
             count: wishlistProducts.length,
-            message: wishlistProducts.length > 0 ? "Wishlist retrieved" : "Wishlist is empty",
+            message: wishlistProducts.length > 0
+                ? "Wishlist retrieved"
+                : "Wishlist is empty",
         });
     }
     catch (error) {

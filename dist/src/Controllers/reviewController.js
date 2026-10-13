@@ -49,7 +49,9 @@ const createReview = async (req, res) => {
             });
         }
         const parsedUserId = Number(userId);
-        const product = await prisma_1.prisma.product.findUnique({ where: { id: parsedProductId } });
+        const product = await prisma_1.prisma.product.findUnique({
+            where: { id: parsedProductId },
+        });
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
         }
@@ -78,7 +80,9 @@ const createReview = async (req, res) => {
             },
         });
         await updateProductRatingStats(parsedProductId);
-        const updatedProduct = await prisma_1.prisma.product.findUnique({ where: { id: parsedProductId } });
+        const updatedProduct = await prisma_1.prisma.product.findUnique({
+            where: { id: parsedProductId },
+        });
         return res.status(201).json({
             message: "Review submitted successfully",
             review,
@@ -109,7 +113,9 @@ const getProductReviews = async (req, res) => {
         const pageSize = parseInt(String(limit), 10);
         const currentPage = parseInt(String(page), 10);
         const skip = (currentPage - 1) * pageSize;
-        const product = await prisma_1.prisma.product.findUnique({ where: { id: parsedProductId } });
+        const product = await prisma_1.prisma.product.findUnique({
+            where: { id: parsedProductId },
+        });
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
         }
@@ -158,7 +164,9 @@ const getProductReviews = async (req, res) => {
             where: whereClause,
             _avg: { rating: true },
         });
-        const averageRatingValue = avgRatingAgg._avg.rating ? Number(avgRatingAgg._avg.rating).toFixed(1) : "0.0";
+        const averageRatingValue = avgRatingAgg._avg.rating
+            ? Number(avgRatingAgg._avg.rating).toFixed(1)
+            : "0.0";
         return res.status(200).json({
             reviews,
             pagination: {
@@ -193,7 +201,9 @@ const markReviewHelpful = async (req, res) => {
         if (isNaN(parsedReviewId)) {
             return res.status(400).json({ message: "Invalid review ID format" });
         }
-        const review = await prisma_1.prisma.review.findUnique({ where: { id: parsedReviewId } });
+        const review = await prisma_1.prisma.review.findUnique({
+            where: { id: parsedReviewId },
+        });
         if (!review) {
             return res.status(404).json({ message: "Review not found" });
         }
@@ -222,9 +232,13 @@ const replyToReview = async (req, res) => {
         const { reply } = req.body;
         const parsedReviewId = Number(reviewId);
         if (isNaN(parsedReviewId) || !reply) {
-            return res.status(400).json({ message: "Valid review ID and reply content are required" });
+            return res
+                .status(400)
+                .json({ message: "Valid review ID and reply content are required" });
         }
-        const review = await prisma_1.prisma.review.findUnique({ where: { id: parsedReviewId } });
+        const review = await prisma_1.prisma.review.findUnique({
+            where: { id: parsedReviewId },
+        });
         if (!review) {
             return res.status(404).json({ message: "Review not found" });
         }
@@ -323,7 +337,7 @@ const getAllReviews = async (req, res) => {
                 { title: { contains: searchTerm, mode: "insensitive" } },
             ];
         }
-        const [reviews, count, totalReviews, approvedReviews, pendingReviews, avgRatingAgg] = await Promise.all([
+        const [reviews, count, totalReviews, approvedReviews, pendingReviews, avgRatingAgg,] = await Promise.all([
             prisma_1.prisma.review.findMany({
                 where: whereClause,
                 include: {
@@ -345,7 +359,9 @@ const getAllReviews = async (req, res) => {
             totalReviews,
             approvedReviews,
             pendingReviews,
-            averageRating: avgRatingAgg._avg.rating ? Number(avgRatingAgg._avg.rating).toFixed(1) : "0.0",
+            averageRating: avgRatingAgg._avg.rating
+                ? Number(avgRatingAgg._avg.rating).toFixed(1)
+                : "0.0",
         };
         return res.status(200).json({
             reviews,
@@ -378,7 +394,9 @@ const updateReviewStatus = async (req, res) => {
         if (isNaN(parsedReviewId)) {
             return res.status(400).json({ message: "Invalid review ID format" });
         }
-        const review = await prisma_1.prisma.review.findUnique({ where: { id: parsedReviewId } });
+        const review = await prisma_1.prisma.review.findUnique({
+            where: { id: parsedReviewId },
+        });
         if (!review) {
             return res.status(404).json({ message: "Review not found" });
         }
@@ -412,7 +430,9 @@ const deleteReview = async (req, res) => {
         if (isNaN(parsedReviewId)) {
             return res.status(400).json({ message: "Invalid review ID format" });
         }
-        const review = await prisma_1.prisma.review.findUnique({ where: { id: parsedReviewId } });
+        const review = await prisma_1.prisma.review.findUnique({
+            where: { id: parsedReviewId },
+        });
         if (!review) {
             return res.status(404).json({ message: "Review not found" });
         }

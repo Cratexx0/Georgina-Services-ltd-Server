@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getOrderStats = exports.deleteOrder = exports.updateOrderStatus = exports.getOrderById = exports.getAllOrders = void 0;
-const prisma_1 = require("../config/prisma"); // Adjust relative path as needed
-const client_1 = require("@prisma/client");
+const prisma_1 = require("../config/prisma"); //
+const enums_1 = require("../generated/prisma/enums");
 // Get all orders (admin only)
 const getAllOrders = async (req, res) => {
     try {
@@ -92,7 +92,7 @@ const updateOrderStatus = async (req, res) => {
             });
         }
         const normalizedStatus = String(status).toUpperCase();
-        const validStatuses = Object.values(client_1.OrderStatus);
+        const validStatuses = Object.values(enums_1.OrderStatus);
         if (!validStatuses.includes(normalizedStatus)) {
             return res.status(400).json({
                 success: false,
@@ -160,13 +160,13 @@ const getOrderStats = async (req, res) => {
     try {
         const [totalOrders, confirmedOrders, processingOrders, shippedOrders, deliveredOrders, cancelledOrders, revenueResult,] = await Promise.all([
             prisma_1.prisma.order.count(),
-            prisma_1.prisma.order.count({ where: { status: client_1.OrderStatus.CONFIRMED } }),
-            prisma_1.prisma.order.count({ where: { status: client_1.OrderStatus.PROCESSING } }),
-            prisma_1.prisma.order.count({ where: { status: client_1.OrderStatus.SHIPPED } }),
-            prisma_1.prisma.order.count({ where: { status: client_1.OrderStatus.DELIVERED } }),
-            prisma_1.prisma.order.count({ where: { status: client_1.OrderStatus.CANCELLED } }),
+            prisma_1.prisma.order.count({ where: { status: enums_1.OrderStatus.CONFIRMED } }),
+            prisma_1.prisma.order.count({ where: { status: enums_1.OrderStatus.PROCESSING } }),
+            prisma_1.prisma.order.count({ where: { status: enums_1.OrderStatus.SHIPPED } }),
+            prisma_1.prisma.order.count({ where: { status: enums_1.OrderStatus.DELIVERED } }),
+            prisma_1.prisma.order.count({ where: { status: enums_1.OrderStatus.CANCELLED } }),
             prisma_1.prisma.order.aggregate({
-                where: { status: client_1.OrderStatus.DELIVERED },
+                where: { status: enums_1.OrderStatus.DELIVERED },
                 _sum: { totalAmount: true },
             }),
         ]);

@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userOrderController = void 0;
-const prisma_1 = require("../config/prisma"); // Adjust relative path as needed
-const client_1 = require("@prisma/client");
+const prisma_1 = require("../config/prisma"); //
+const enums_1 = require("../generated/prisma/enums");
 exports.userOrderController = {
     // Create a new order
     createOrder: async (req, res) => {
@@ -10,7 +10,9 @@ exports.userOrderController = {
             const userId = req.user?.id;
             const { items, totalAmount, shippingAddress, paymentMethod } = req.body;
             if (!userId) {
-                return res.status(401).json({ success: false, message: "Not authorized" });
+                return res
+                    .status(401)
+                    .json({ success: false, message: "Not authorized" });
             }
             console.log("🔐 Creating order for user:", userId);
             console.log("📦 Order items:", items);
@@ -25,7 +27,7 @@ exports.userOrderController = {
             const recentOrder = await prisma_1.prisma.order.findFirst({
                 where: {
                     userId,
-                    status: client_1.OrderStatus.PENDING,
+                    status: enums_1.OrderStatus.PENDING,
                     totalAmount: Number(totalAmount),
                     createdAt: { gte: oneMinuteAgo },
                 },
@@ -52,7 +54,7 @@ exports.userOrderController = {
                 select: { id: true, images: true },
             });
             const productMap = products.reduce((map, product) => {
-                map[product.id] = product;
+                map[Number(product.id)] = product;
                 return map;
             }, {});
             const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -64,12 +66,15 @@ exports.userOrderController = {
                     totalAmount: Number(totalAmount),
                     shippingAddress: shippingAddress || null,
                     paymentMethod: paymentMethod || null,
-                    status: client_1.OrderStatus.PENDING,
+                    status: enums_1.OrderStatus.PENDING,
                     items: {
                         create: items.map((item) => {
                             const product = productMap[Number(item.productId)];
                             let imageUrl = null;
-                            if (product && product.images && Array.isArray(product.images) && product.images.length > 0) {
+                            if (product &&
+                                product.images &&
+                                Array.isArray(product.images) &&
+                                product.images.length > 0) {
                                 imageUrl = String(product.images[0]);
                             }
                             return {
@@ -108,7 +113,9 @@ exports.userOrderController = {
         try {
             const userId = req.user?.id;
             if (!userId) {
-                return res.status(401).json({ success: false, message: "Not authorized" });
+                return res
+                    .status(401)
+                    .json({ success: false, message: "Not authorized" });
             }
             console.log("🔐 Fetching orders for user:", userId);
             const orders = await prisma_1.prisma.order.findMany({
@@ -146,7 +153,9 @@ exports.userOrderController = {
             const userId = req.user?.id;
             const orderNumber = String(req.params.id);
             if (!userId) {
-                return res.status(401).json({ success: false, message: "Not authorized" });
+                return res
+                    .status(401)
+                    .json({ success: false, message: "Not authorized" });
             }
             console.log("🔐 Fetching order:", orderNumber, "for user:", userId);
             const order = await prisma_1.prisma.order.findFirst({
@@ -194,7 +203,9 @@ exports.userOrderController = {
             const userId = req.user?.id;
             const orderNumber = String(req.params.id);
             if (!userId) {
-                return res.status(401).json({ success: false, message: "Not authorized" });
+                return res
+                    .status(401)
+                    .json({ success: false, message: "Not authorized" });
             }
             console.log("🔐 Cancelling order:", orderNumber, "for user:", userId);
             const order = await prisma_1.prisma.order.findFirst({
@@ -209,7 +220,7 @@ exports.userOrderController = {
                     message: "Order not found",
                 });
             }
-            if (order.status !== client_1.OrderStatus.PENDING) {
+            if (order.status !== enums_1.OrderStatus.PENDING) {
                 return res.status(400).json({
                     success: false,
                     message: `Order cannot be cancelled. Current status: ${order.status}`,
@@ -217,7 +228,7 @@ exports.userOrderController = {
             }
             const updatedOrder = await prisma_1.prisma.order.update({
                 where: { id: order.id },
-                data: { status: client_1.OrderStatus.CANCELLED },
+                data: { status: enums_1.OrderStatus.CANCELLED },
             });
             return res.json({
                 success: true,
@@ -240,7 +251,9 @@ exports.userOrderController = {
             const userId = req.user?.id;
             const orderNumber = String(req.params.id);
             if (!userId) {
-                return res.status(401).json({ success: false, message: "Not authorized" });
+                return res
+                    .status(401)
+                    .json({ success: false, message: "Not authorized" });
             }
             console.log("🔐 Deleting order:", orderNumber, "for user:", userId);
             const order = await prisma_1.prisma.order.findFirst({
@@ -255,7 +268,8 @@ exports.userOrderController = {
                     message: "Order not found",
                 });
             }
-            if (order.status !== client_1.OrderStatus.PENDING && order.status !== client_1.OrderStatus.CANCELLED) {
+            if (order.status !== enums_1.OrderStatus.PENDING &&
+                order.status !== enums_1.OrderStatus.CANCELLED) {
                 return res.status(400).json({
                     success: false,
                     message: `Order cannot be deleted. Only pending or cancelled orders can be deleted. Current status: ${order.status}`,

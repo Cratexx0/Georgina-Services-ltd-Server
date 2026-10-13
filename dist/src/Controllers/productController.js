@@ -26,16 +26,20 @@ const extractPublicIdFromUrl = (url) => {
 // Create Product
 const createProducts = async (req, res) => {
     try {
-        const { name, description, price, categoryLevel1, categoryLevel2, categoryLevel3, unit, stock, brand, isActive, isFeatured, isTrending, isNewArrival, featuredOrder, trendingOrder, newArrivalOrder, weight, discount, tags, size } = req.body;
+        const { name, description, price, categoryLevel1, categoryLevel2, categoryLevel3, unit, stock, brand, isActive, isFeatured, isTrending, isNewArrival, featuredOrder, trendingOrder, newArrivalOrder, weight, discount, tags, size, } = req.body;
         if (!name || !price || !categoryLevel1) {
-            return res.status(400).json({ message: "Name, price, and categoryLevel1 are required" });
+            return res
+                .status(400)
+                .json({ message: "Name, price, and categoryLevel1 are required" });
         }
         const imageUrl = req.file ? req.file.path : null;
         if (!imageUrl) {
             return res.status(400).json({ message: "Image is required" });
         }
         const slug = generateSlug(name);
-        const existingProduct = await prisma_1.prisma.product.findUnique({ where: { slug } });
+        const existingProduct = await prisma_1.prisma.product.findUnique({
+            where: { slug },
+        });
         if (existingProduct) {
             try {
                 const publicId = extractPublicIdFromUrl(imageUrl);
@@ -45,18 +49,26 @@ const createProducts = async (req, res) => {
             catch (deleteError) {
                 console.error("Error deleting image from Cloudinary:", deleteError);
             }
-            return res.status(400).json({ message: "Product with similar name already exists" });
+            return res
+                .status(400)
+                .json({ message: "Product with similar name already exists" });
         }
         let tagsArray = [];
         try {
-            tagsArray = typeof tags === "string" ? JSON.parse(tags) : (tags || []);
+            tagsArray = typeof tags === "string" ? JSON.parse(tags) : tags || [];
         }
         catch (e) {
             tagsArray = [];
         }
         let sizeArray = [];
         try {
-            sizeArray = typeof size === "string" ? size.split(",").map((s) => s.trim()).filter(Boolean) : (size || []);
+            sizeArray =
+                typeof size === "string"
+                    ? size
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean)
+                    : size || [];
         }
         catch (e) {
             sizeArray = [];
@@ -75,7 +87,9 @@ const createProducts = async (req, res) => {
                 unit: unit || "piece",
                 stock: stock ? parseInt(stock) : 0,
                 images: [imageUrl],
-                isActive: isActive !== undefined ? isActive === "true" || isActive === true : true,
+                isActive: isActive !== undefined
+                    ? isActive === "true" || isActive === true
+                    : true,
                 isFeatured: isFeatured === "true" || isFeatured === true,
                 isTrending: isTrending === "true" || isTrending === true,
                 isNewArrival: isNewArrival === "true" || isNewArrival === true,
@@ -87,7 +101,9 @@ const createProducts = async (req, res) => {
                 brand: brand || null,
             },
         });
-        return res.status(201).json({ message: "Product created successfully", product });
+        return res
+            .status(201)
+            .json({ message: "Product created successfully", product });
     }
     catch (error) {
         if (req.file && req.file.path) {
@@ -101,7 +117,9 @@ const createProducts = async (req, res) => {
             }
         }
         console.error("Error creating product:", error);
-        return res.status(500).json({ message: "Error creating product", error: error.message });
+        return res
+            .status(500)
+            .json({ message: "Error creating product", error: error.message });
     }
 };
 exports.createProducts = createProducts;
@@ -152,7 +170,9 @@ const updateProduct = async (req, res) => {
                         console.error("Error deleting image from Cloudinary:", deleteError);
                     }
                 }
-                return res.status(400).json({ message: "Product with similar name already exists" });
+                return res
+                    .status(400)
+                    .json({ message: "Product with similar name already exists" });
             }
         }
         if (updateData.price)
@@ -168,30 +188,46 @@ const updateProduct = async (req, res) => {
         if (updateData.newArrivalOrder)
             updateData.newArrivalOrder = parseInt(updateData.newArrivalOrder);
         if (updateData.tags) {
-            updateData.tags = typeof updateData.tags === "string" ? JSON.parse(updateData.tags) : updateData.tags;
+            updateData.tags =
+                typeof updateData.tags === "string"
+                    ? JSON.parse(updateData.tags)
+                    : updateData.tags;
         }
         if (updateData.size) {
-            updateData.size = typeof updateData.size === "string"
-                ? updateData.size.split(",").map((s) => s.trim()).filter(Boolean)
-                : updateData.size;
+            updateData.size =
+                typeof updateData.size === "string"
+                    ? updateData.size
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean)
+                    : updateData.size;
         }
         if (updateData.isActive !== undefined) {
-            updateData.isActive = updateData.isActive === "true" || updateData.isActive === true;
+            updateData.isActive =
+                updateData.isActive === "true" || updateData.isActive === true;
         }
         if (updateData.isFeatured !== undefined) {
-            updateData.isFeatured = updateData.isFeatured === "true" || updateData.isFeatured === true;
+            updateData.isFeatured =
+                updateData.isFeatured === "true" || updateData.isFeatured === true;
         }
         if (updateData.isTrending !== undefined) {
-            updateData.isTrending = updateData.isTrending === "true" || updateData.isTrending === true;
+            updateData.isTrending =
+                updateData.isTrending === "true" || updateData.isTrending === true;
         }
         if (updateData.isNewArrival !== undefined) {
-            updateData.isNewArrival = updateData.isNewArrival === "true" || updateData.isNewArrival === true;
+            updateData.isNewArrival =
+                updateData.isNewArrival === "true" || updateData.isNewArrival === true;
         }
         const updatedProduct = await prisma_1.prisma.product.update({
             where: { id: queryId },
             data: updateData,
         });
-        return res.status(200).json({ product: updatedProduct, message: "Product updated successfully" });
+        return res
+            .status(200)
+            .json({
+            product: updatedProduct,
+            message: "Product updated successfully",
+        });
     }
     catch (error) {
         if (req.file && req.file.path) {
@@ -205,20 +241,28 @@ const updateProduct = async (req, res) => {
             }
         }
         console.error("Error updating product:", error);
-        return res.status(500).json({ error: "Error updating product", message: error.message });
+        return res
+            .status(500)
+            .json({ error: "Error updating product", message: error.message });
     }
 };
 exports.updateProduct = updateProduct;
 // Get Products
 const getProducts = async (req, res) => {
     try {
-        const { categoryLevel1, categoryLevel2, categoryLevel3, isActive, search, minPrice, maxPrice, brand } = req.query;
+        const { categoryLevel1, categoryLevel2, categoryLevel3, isActive, search, minPrice, maxPrice, brand, } = req.query;
         const whereClause = {};
         if (categoryLevel1) {
-            whereClause.categoryLevel1 = { equals: String(categoryLevel1).trim(), mode: "insensitive" };
+            whereClause.categoryLevel1 = {
+                equals: String(categoryLevel1).trim(),
+                mode: "insensitive",
+            };
         }
         if (categoryLevel2) {
-            whereClause.categoryLevel2 = { equals: String(categoryLevel2).trim(), mode: "insensitive" };
+            whereClause.categoryLevel2 = {
+                equals: String(categoryLevel2).trim(),
+                mode: "insensitive",
+            };
         }
         if (categoryLevel3)
             whereClause.categoryLevel3 = String(categoryLevel3);
@@ -246,11 +290,15 @@ const getProducts = async (req, res) => {
             where: whereClause,
             orderBy: { createdAt: "desc" },
         });
-        return res.status(200).json({ products, message: "Products retrieved successfully" });
+        return res
+            .status(200)
+            .json({ products, message: "Products retrieved successfully" });
     }
     catch (error) {
         console.error("Error retrieving products:", error);
-        return res.status(500).json({ error: "Error retrieving products", message: error.message });
+        return res
+            .status(500)
+            .json({ error: "Error retrieving products", message: error.message });
     }
 };
 exports.getProducts = getProducts;
@@ -263,11 +311,18 @@ const getFeaturedProducts = async (req, res) => {
             orderBy: [{ featuredOrder: "asc" }, { createdAt: "desc" }],
             take: limit ? parseInt(String(limit)) : undefined,
         });
-        return res.status(200).json({ products, message: "Featured products retrieved successfully" });
+        return res
+            .status(200)
+            .json({ products, message: "Featured products retrieved successfully" });
     }
     catch (error) {
         console.error("Error retrieving featured products:", error);
-        return res.status(500).json({ error: "Error retrieving featured products", message: error.message });
+        return res
+            .status(500)
+            .json({
+            error: "Error retrieving featured products",
+            message: error.message,
+        });
     }
 };
 exports.getFeaturedProducts = getFeaturedProducts;
@@ -280,11 +335,18 @@ const getTrendingProducts = async (req, res) => {
             orderBy: [{ trendingOrder: "asc" }, { createdAt: "desc" }],
             take: limit ? parseInt(String(limit)) : undefined,
         });
-        return res.status(200).json({ products, message: "Trending products retrieved successfully" });
+        return res
+            .status(200)
+            .json({ products, message: "Trending products retrieved successfully" });
     }
     catch (error) {
         console.error("Error retrieving trending products:", error);
-        return res.status(500).json({ error: "Error retrieving trending products", message: error.message });
+        return res
+            .status(500)
+            .json({
+            error: "Error retrieving trending products",
+            message: error.message,
+        });
     }
 };
 exports.getTrendingProducts = getTrendingProducts;
@@ -299,14 +361,22 @@ const getNewArrivals = async (req, res) => {
                 isActive: true,
                 createdAt: { gte: dateThreshold },
             },
-            orderBy: [{ isNewArrival: "desc" }, { newArrivalOrder: "asc" }, { createdAt: "desc" }],
+            orderBy: [
+                { isNewArrival: "desc" },
+                { newArrivalOrder: "asc" },
+                { createdAt: "desc" },
+            ],
             take: limit ? parseInt(String(limit)) : undefined,
         });
-        return res.status(200).json({ products, message: "New arrivals retrieved successfully" });
+        return res
+            .status(200)
+            .json({ products, message: "New arrivals retrieved successfully" });
     }
     catch (error) {
         console.error("Error retrieving new arrivals:", error);
-        return res.status(500).json({ error: "Error retrieving new arrivals", message: error.message });
+        return res
+            .status(500)
+            .json({ error: "Error retrieving new arrivals", message: error.message });
     }
 };
 exports.getNewArrivals = getNewArrivals;
@@ -320,14 +390,15 @@ const updateProductSpecialCategories = async (req, res) => {
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
         }
-        const { isFeatured, isTrending, isNewArrival, featuredOrder, trendingOrder, newArrivalOrder } = req.body;
+        const { isFeatured, isTrending, isNewArrival, featuredOrder, trendingOrder, newArrivalOrder, } = req.body;
         const updateData = {};
         if (isFeatured !== undefined)
             updateData.isFeatured = isFeatured === "true" || isFeatured === true;
         if (isTrending !== undefined)
             updateData.isTrending = isTrending === "true" || isTrending === true;
         if (isNewArrival !== undefined)
-            updateData.isNewArrival = isNewArrival === "true" || isNewArrival === true;
+            updateData.isNewArrival =
+                isNewArrival === "true" || isNewArrival === true;
         if (featuredOrder !== undefined)
             updateData.featuredOrder = parseInt(featuredOrder) || 0;
         if (trendingOrder !== undefined)
@@ -338,11 +409,21 @@ const updateProductSpecialCategories = async (req, res) => {
             where: { id: queryId },
             data: updateData,
         });
-        return res.status(200).json({ product: updatedProduct, message: "Product special categories updated successfully" });
+        return res
+            .status(200)
+            .json({
+            product: updatedProduct,
+            message: "Product special categories updated successfully",
+        });
     }
     catch (error) {
         console.error("Error updating product special categories:", error);
-        return res.status(500).json({ error: "Error updating product special categories", message: error.message });
+        return res
+            .status(500)
+            .json({
+            error: "Error updating product special categories",
+            message: error.message,
+        });
     }
 };
 exports.updateProductSpecialCategories = updateProductSpecialCategories;
@@ -359,16 +440,24 @@ const getProduct = async (req, res) => {
         }
         if (!product) {
             // Cast the object or pass the clean string explicitly to satisfy TypeScript
-            product = await prisma_1.prisma.product.findUnique({ where: { slug: cleanProductId } });
+            product = await prisma_1.prisma.product.findUnique({
+                where: { slug: cleanProductId },
+            });
         }
         if (!product) {
-            return res.status(404).json({ message: "Product not found", productId: cleanProductId });
+            return res
+                .status(404)
+                .json({ message: "Product not found", productId: cleanProductId });
         }
-        return res.status(200).json({ product, message: "Product retrieved successfully" });
+        return res
+            .status(200)
+            .json({ product, message: "Product retrieved successfully" });
     }
     catch (error) {
         console.error("Error retrieving product:", error);
-        return res.status(500).json({ error: "Error retrieving product", message: error.message });
+        return res
+            .status(500)
+            .json({ error: "Error retrieving product", message: error.message });
     }
 };
 exports.getProduct = getProduct;
@@ -400,7 +489,9 @@ const deleteProduct = async (req, res) => {
     }
     catch (error) {
         console.error("Error deleting product:", error);
-        return res.status(500).json({ error: "Error deleting product", message: error.message });
+        return res
+            .status(500)
+            .json({ error: "Error deleting product", message: error.message });
     }
 };
 exports.deleteProduct = deleteProduct;
@@ -423,11 +514,19 @@ const getProductBySlug = async (req, res) => {
             take: 4,
             orderBy: { createdAt: "desc" },
         });
-        return res.status(200).json({ product, relatedProducts, message: "Product retrieved successfully by slug" });
+        return res
+            .status(200)
+            .json({
+            product,
+            relatedProducts,
+            message: "Product retrieved successfully by slug",
+        });
     }
     catch (error) {
         console.error("Error retrieving product by slug:", error);
-        return res.status(500).json({ error: "Error retrieving product", message: error.message });
+        return res
+            .status(500)
+            .json({ error: "Error retrieving product", message: error.message });
     }
 };
 exports.getProductBySlug = getProductBySlug;
@@ -446,11 +545,15 @@ const getProductsByCategory = async (req, res) => {
             where: whereClause,
             orderBy: { createdAt: "desc" },
         });
-        return res.status(200).json({ products, message: "Products retrieved successfully" });
+        return res
+            .status(200)
+            .json({ products, message: "Products retrieved successfully" });
     }
     catch (error) {
         console.error("Error retrieving products by category:", error);
-        return res.status(500).json({ error: "Error retrieving products", message: error.message });
+        return res
+            .status(500)
+            .json({ error: "Error retrieving products", message: error.message });
     }
 };
 exports.getProductsByCategory = getProductsByCategory;
@@ -475,14 +578,16 @@ const toggleProductStatus = async (req, res) => {
     }
     catch (error) {
         console.error("Error toggling product status:", error);
-        return res.status(500).json({ error: "Error updating product status", message: error.message });
+        return res
+            .status(500)
+            .json({ error: "Error updating product status", message: error.message });
     }
 };
 exports.toggleProductStatus = toggleProductStatus;
 // Get Admin Products
 const getAdminProducts = async (req, res) => {
     try {
-        const { categoryLevel1, categoryLevel2, categoryLevel3, isActive, search, minPrice, maxPrice, brand, lowStock } = req.query;
+        const { categoryLevel1, categoryLevel2, categoryLevel3, isActive, search, minPrice, maxPrice, brand, lowStock, } = req.query;
         const whereClause = {};
         if (categoryLevel1)
             whereClause.categoryLevel1 = String(categoryLevel1);
@@ -519,17 +624,31 @@ const getAdminProducts = async (req, res) => {
         });
         const analytics = {
             totalProducts: products.length,
-            activeProducts: products.filter((p) => p.isActive).length,
-            inactiveProducts: products.filter((p) => !p.isActive).length,
-            lowStockProducts: products.filter((p) => p.stock < 10).length,
+            activeProducts: products.filter((p) => p.isActive)
+                .length,
+            inactiveProducts: products.filter((p) => !p.isActive)
+                .length,
+            lowStockProducts: products.filter((p) => p.stock < 10)
+                .length,
             outOfStockProducts: products.filter((p) => p.stock === 0).length,
             totalValue: products.reduce((sum, p) => sum + Number(p.price) * p.stock, 0),
         };
-        return res.status(200).json({ products, analytics, message: "Admin products retrieved successfully" });
+        return res
+            .status(200)
+            .json({
+            products,
+            analytics,
+            message: "Admin products retrieved successfully",
+        });
     }
     catch (error) {
         console.error("Error retrieving admin products:", error);
-        return res.status(500).json({ error: "Error retrieving admin products", message: error.message });
+        return res
+            .status(500)
+            .json({
+            error: "Error retrieving admin products",
+            message: error.message,
+        });
     }
 };
 exports.getAdminProducts = getAdminProducts;
@@ -571,11 +690,22 @@ const getAdminProductById = async (req, res) => {
             take: 5,
             orderBy: { createdAt: "desc" },
         });
-        return res.status(200).json({ product, relatedProducts, message: "Admin product retrieved successfully" });
+        return res
+            .status(200)
+            .json({
+            product,
+            relatedProducts,
+            message: "Admin product retrieved successfully",
+        });
     }
     catch (error) {
         console.error("Error retrieving admin product:", error);
-        return res.status(500).json({ error: "Error retrieving admin product", message: error.message });
+        return res
+            .status(500)
+            .json({
+            error: "Error retrieving admin product",
+            message: error.message,
+        });
     }
 };
 exports.getAdminProductById = getAdminProductById;
@@ -588,7 +718,8 @@ const getAdminSpecialProducts = async (req, res) => {
         const skip = (currentPage - 1) * pageSize;
         let whereClause = {};
         let orderBy = [{ updatedAt: "desc" }];
-        if (type && ["featured", "trending", "new-arrivals"].includes(String(type))) {
+        if (type &&
+            ["featured", "trending", "new-arrivals"].includes(String(type))) {
             switch (type) {
                 case "featured":
                     whereClause.isFeatured = true;
@@ -605,7 +736,11 @@ const getAdminSpecialProducts = async (req, res) => {
             }
         }
         else {
-            whereClause.OR = [{ isFeatured: true }, { isTrending: true }, { isNewArrival: true }];
+            whereClause.OR = [
+                { isFeatured: true },
+                { isTrending: true },
+                { isNewArrival: true },
+            ];
         }
         if (search) {
             const searchTerm = String(search);
@@ -616,10 +751,7 @@ const getAdminSpecialProducts = async (req, res) => {
             ];
             if (whereClause.OR) {
                 whereClause = {
-                    AND: [
-                        { OR: whereClause.OR },
-                        { OR: searchCondition },
-                    ],
+                    AND: [{ OR: whereClause.OR }, { OR: searchCondition }],
                 };
             }
             else {
@@ -635,7 +767,7 @@ const getAdminSpecialProducts = async (req, res) => {
             }),
             prisma_1.prisma.product.count({ where: whereClause }),
         ]);
-        const [totalFeatured, totalTrending, totalNewArrivals, activeFeatured, activeTrending, activeNewArrivals] = await Promise.all([
+        const [totalFeatured, totalTrending, totalNewArrivals, activeFeatured, activeTrending, activeNewArrivals,] = await Promise.all([
             prisma_1.prisma.product.count({ where: { isFeatured: true } }),
             prisma_1.prisma.product.count({ where: { isTrending: true } }),
             prisma_1.prisma.product.count({ where: { isNewArrival: true } }),
@@ -689,7 +821,9 @@ const bulkUpdateSpecialCategories = async (req, res) => {
                 const { productId, updates } = item;
                 const parsedId = Number(productId);
                 const queryId = isNaN(parsedId) ? productId : parsedId;
-                const product = await prisma_1.prisma.product.findUnique({ where: { id: queryId } });
+                const product = await prisma_1.prisma.product.findUnique({
+                    where: { id: queryId },
+                });
                 if (!product) {
                     errors.push({ productId, error: "Product not found" });
                     continue;
@@ -726,7 +860,9 @@ const bulkUpdateSpecialCategories = async (req, res) => {
     }
     catch (error) {
         console.error("Error in bulk update special categories:", error);
-        return res.status(500).json({ error: "Error during bulk update", message: error.message });
+        return res
+            .status(500)
+            .json({ error: "Error during bulk update", message: error.message });
     }
 };
 exports.bulkUpdateSpecialCategories = bulkUpdateSpecialCategories;

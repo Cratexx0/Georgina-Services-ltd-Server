@@ -45,7 +45,9 @@ const getOrderItemById = async (req, res) => {
     try {
         const itemId = Number(req.params.id);
         if (isNaN(itemId)) {
-            return res.status(400).json({ success: false, error: "Invalid order item ID format" });
+            return res
+                .status(400)
+                .json({ success: false, error: "Invalid order item ID format" });
         }
         const orderItem = await prisma_1.prisma.orderItem.findUnique({
             where: { id: itemId },
@@ -128,7 +130,9 @@ const updateOrderItem = async (req, res) => {
         console.log("Update data:", req.body);
         const itemId = Number(req.params.id);
         if (isNaN(itemId)) {
-            return res.status(400).json({ success: false, error: "Invalid order item ID format" });
+            return res
+                .status(400)
+                .json({ success: false, error: "Invalid order item ID format" });
         }
         const existingItem = await prisma_1.prisma.orderItem.findUnique({
             where: { id: itemId },
@@ -162,7 +166,9 @@ const deleteOrderItem = async (req, res) => {
     try {
         const itemId = Number(req.params.id);
         if (isNaN(itemId)) {
-            return res.status(400).json({ success: false, error: "Invalid order item ID format" });
+            return res
+                .status(400)
+                .json({ success: false, error: "Invalid order item ID format" });
         }
         const existingItem = await prisma_1.prisma.orderItem.findUnique({
             where: { id: itemId },

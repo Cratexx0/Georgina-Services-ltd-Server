@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUser = exports.updateUser = exports.getAllUsers = exports.userInfo = exports.createUser = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const prisma_1 = require("../config/prisma"); // Adjust relative path as needed
-const client_1 = require("@prisma/client");
+const prisma_1 = require("../config/prisma");
+const enums_1 = require("../generated/prisma/enums");
 // Create User
 const createUser = async (req, res) => {
     try {
@@ -16,7 +16,9 @@ const createUser = async (req, res) => {
         }
         const existingUser = await prisma_1.prisma.user.findUnique({ where: { email } });
         if (existingUser) {
-            return res.status(400).json({ message: "User already exists with this email" });
+            return res
+                .status(400)
+                .json({ message: "User already exists with this email" });
         }
         const hashedPassword = await bcryptjs_1.default.hash(password, 10);
         const user = await prisma_1.prisma.user.create({
@@ -24,7 +26,7 @@ const createUser = async (req, res) => {
                 name,
                 email,
                 password: hashedPassword,
-                role: client_1.UserRole.USER,
+                role: enums_1.UserRole.USER,
             },
             select: {
                 id: true,
@@ -41,7 +43,9 @@ const createUser = async (req, res) => {
     }
     catch (error) {
         console.error("Error creating user", error);
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res
+            .status(500)
+            .json({ message: "Server error", error: error.message });
     }
 };
 exports.createUser = createUser;
@@ -71,7 +75,9 @@ const userInfo = async (req, res) => {
     }
     catch (error) {
         console.error("Error fetching user info", error);
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res
+            .status(500)
+            .json({ message: "Server error", error: error.message });
     }
 };
 exports.userInfo = userInfo;
@@ -98,7 +104,9 @@ const getAllUsers = async (req, res) => {
     }
     catch (error) {
         console.error("Error fetching users:", error);
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res
+            .status(500)
+            .json({ message: "Server error", error: error.message });
     }
 };
 exports.getAllUsers = getAllUsers;
@@ -114,7 +122,9 @@ const updateUser = async (req, res) => {
         if (isNaN(userId)) {
             return res.status(400).json({ message: "Invalid user ID format" });
         }
-        const existingUser = await prisma_1.prisma.user.findUnique({ where: { id: userId } });
+        const existingUser = await prisma_1.prisma.user.findUnique({
+            where: { id: userId },
+        });
         if (!existingUser) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -127,7 +137,7 @@ const updateUser = async (req, res) => {
             updateData.contact = contact;
         if (role) {
             const normalizedRole = String(role).toUpperCase();
-            if (Object.values(client_1.UserRole).includes(normalizedRole)) {
+            if (Object.values(enums_1.UserRole).includes(normalizedRole)) {
                 updateData.role = normalizedRole;
             }
         }
@@ -143,11 +153,15 @@ const updateUser = async (req, res) => {
                 updatedAt: true,
             },
         });
-        return res.status(200).json({ message: "User updated successfully", user: updatedUser });
+        return res
+            .status(200)
+            .json({ message: "User updated successfully", user: updatedUser });
     }
     catch (error) {
         console.error("Error updating user", error);
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res
+            .status(500)
+            .json({ message: "Server error", error: error.message });
     }
 };
 exports.updateUser = updateUser;
@@ -171,7 +185,9 @@ const deleteUser = async (req, res) => {
     }
     catch (error) {
         console.error("Error deleting user", error);
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res
+            .status(500)
+            .json({ message: "Server error", error: error.message });
     }
 };
 exports.deleteUser = deleteUser;
