@@ -4,10 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUnreadCount = exports.markAsRead = exports.getChatHistory = exports.sendMessage = exports.getOrCreateSession = void 0;
-const client_1 = require("@prisma/client");
 const openai_1 = __importDefault(require("openai"));
 // const prisma = new PrismaClient();
 const prisma_1 = require("../config/prisma"); // Adjust relative path as needed
+const enums_1 = require("../generated/prisma/enums");
 // Initialize OpenAI
 const openai = new openai_1.default({
     apiKey: process.env.OPENAI_API_KEY,
@@ -17,22 +17,24 @@ const getStringParam = (param) => {
     if (!param)
         return undefined;
     if (Array.isArray(param))
-        return typeof param[0] === 'string' ? param[0] : undefined;
-    return typeof param === 'string' ? param : String(param);
+        return typeof param[0] === "string" ? param[0] : undefined;
+    return typeof param === "string" ? param : String(param);
 };
 // Get or create chat session
 const getOrCreateSession = async (req, res) => {
     try {
         const rawSessionId = getStringParam(req.params.sessionId);
         let session = rawSessionId;
-        if (!rawSessionId || rawSessionId === 'new' || rawSessionId === 'undefined') {
+        if (!rawSessionId ||
+            rawSessionId === "new" ||
+            rawSessionId === "undefined") {
             session = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         }
         // Get existing messages for this session
         const messages = await prisma_1.prisma.chatMessage.findMany({
             where: { sessionId: session },
-            orderBy: { timestamp: 'asc' },
-            take: 50
+            orderBy: { timestamp: "asc" },
+            take: 50,
         });
         let allMessages = [...messages];
         // If no messages, create welcome message
@@ -41,17 +43,17 @@ const getOrCreateSession = async (req, res) => {
                 data: {
                     sessionId: session,
                     message: "Hello! I'm Georgina, your cleaning service assistant. I can help you with booking cleanings, checking prices, or answering any questions about our services. What would you like to know?",
-                    sender: client_1.ChatSender.BOT,
-                    messageType: client_1.MessageType.TEXT,
+                    sender: enums_1.ChatSender.BOT,
+                    messageType: enums_1.MessageType.TEXT,
                     metadata: {
                         quickReplies: [
                             "What services do you offer?",
                             "How do I book a cleaning?",
                             "What are your prices?",
-                            "Contact support"
-                        ]
-                    }
-                }
+                            "Contact support",
+                        ],
+                    },
+                },
             });
             allMessages.push(welcomeMessage);
         }
@@ -59,16 +61,16 @@ const getOrCreateSession = async (req, res) => {
             success: true,
             data: {
                 sessionId: session,
-                messages: allMessages
-            }
+                messages: allMessages,
+            },
         });
     }
     catch (error) {
-        console.error('Error getting chat session:', error);
+        console.error("Error getting chat session:", error);
         return res.status(500).json({
             success: false,
-            message: 'Failed to get chat session',
-            error: error.message
+            message: "Failed to get chat session",
+            error: error.message,
         });
     }
 };
@@ -96,16 +98,16 @@ Guidelines:
 - Use emojis sparingly to make it friendly
 - For booking requests, direct them to the website or phone
 - For pricing questions, provide general ranges and offer custom quotes
-`
+`,
             },
             ...conversationHistory.slice(-10).map((msg) => ({
-                role: msg.sender === client_1.ChatSender.USER ? 'user' : 'assistant',
-                content: msg.message
+                role: msg.sender === enums_1.ChatSender.USER ? "user" : "assistant",
+                content: msg.message,
             })),
             {
                 role: "user",
-                content: userMessage
-            }
+                content: userMessage,
+            },
         ];
         const completion = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
@@ -117,16 +119,16 @@ Guidelines:
         return {
             sessionId,
             message: aiResponse,
-            sender: client_1.ChatSender.BOT,
-            messageType: client_1.MessageType.TEXT,
+            sender: enums_1.ChatSender.BOT,
+            messageType: enums_1.MessageType.TEXT,
             metadata: {
                 isAI: true,
-                model: 'gpt-3.5-turbo'
-            }
+                model: "gpt-3.5-turbo",
+            },
         };
     }
     catch (error) {
-        console.error('AI API Error:', error);
+        console.error("AI API Error:", error);
         return generateFallbackResponse(userMessage, sessionId);
     }
 };
@@ -135,34 +137,39 @@ const generateFallbackResponse = (userMessage, sessionId) => {
     const message = userMessage.toLowerCase().trim();
     const response = {
         sessionId,
-        sender: client_1.ChatSender.BOT,
-        messageType: client_1.MessageType.TEXT,
-        metadata: { isAI: false }
+        sender: enums_1.ChatSender.BOT,
+        messageType: enums_1.MessageType.TEXT,
+        metadata: { isAI: false },
     };
-    if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
-        response.message = "Hello! 👋 Welcome to Georgina Cleaning Service. How can I help you today?";
+    if (message.includes("hello") ||
+        message.includes("hi") ||
+        message.includes("hey")) {
+        response.message =
+            "Hello! 👋 Welcome to Georgina Cleaning Service. How can I help you today?";
         response.metadata.quickReplies = [
             "Book a cleaning service",
             "View pricing",
             "Contact support",
-            "Service areas"
+            "Service areas",
         ];
     }
-    else if (message.includes('service') || message.includes('offer')) {
-        response.message = "We offer professional cleaning services including:\n\nOffice Cleaning 🏢\nKitchen Cleaning 🍳\nBathroom Cleaning 🚿\nDusting Service 🌬️\nMopping Service 🧹\nVacuuming Service 🧽\n\nWhich service are you interested in?";
+    else if (message.includes("service") || message.includes("offer")) {
+        response.message =
+            "We offer professional cleaning services including:\n\nOffice Cleaning 🏢\nKitchen Cleaning 🍳\nBathroom Cleaning 🚿\nDusting Service 🌬️\nMopping Service 🧹\nVacuuming Service 🧽\n\nWhich service are you interested in?";
         response.metadata.quickReplies = [
             "Office Cleaning",
             "Kitchen Cleaning",
             "Bathroom Cleaning",
-            "View all services"
+            "View all services",
         ];
     }
-    else if (message.includes('price') || message.includes('cost')) {
-        response.message = "Our pricing starts from:\n\nOffice Cleaning: $150\nKitchen Cleaning: $200\nBathroom Cleaning: $100\nDusting Service: $80\nMopping Service: $90\nVacuuming Service: $85\n\nPrices may vary based on space size. Would you like a custom quote?";
+    else if (message.includes("price") || message.includes("cost")) {
+        response.message =
+            "Our pricing starts from:\n\nOffice Cleaning: $150\nKitchen Cleaning: $200\nBathroom Cleaning: $100\nDusting Service: $80\nMopping Service: $90\nVacuuming Service: $85\n\nPrices may vary based on space size. Would you like a custom quote?";
         response.metadata.quickReplies = [
             "Get a custom quote",
             "Book a service",
-            "View service details"
+            "View service details",
         ];
     }
     else {
@@ -170,7 +177,7 @@ const generateFallbackResponse = (userMessage, sessionId) => {
         response.metadata.quickReplies = [
             "Contact support",
             "View services",
-            "Check pricing"
+            "Check pricing",
         ];
     }
     return response;
@@ -182,36 +189,36 @@ const sendMessage = async (req, res) => {
         if (!sessionId || !message) {
             return res.status(400).json({
                 success: false,
-                message: 'Session ID and message are required'
+                message: "Session ID and message are required",
             });
         }
         // Get conversation history for context
         const conversationHistory = await prisma_1.prisma.chatMessage.findMany({
             where: { sessionId },
-            orderBy: { timestamp: 'asc' },
-            take: 10
+            orderBy: { timestamp: "asc" },
+            take: 10,
         });
         // Save user message
         const userMessage = await prisma_1.prisma.chatMessage.create({
             data: {
                 sessionId,
                 message: String(message).trim(),
-                sender: client_1.ChatSender.USER,
-                messageType: client_1.MessageType.TEXT,
-                metadata: metadata || null
-            }
+                sender: enums_1.ChatSender.USER,
+                messageType: enums_1.MessageType.TEXT,
+                metadata: metadata || null,
+            },
         });
         // Generate AI response
         const botResponseData = await generateBotResponse(message, sessionId, conversationHistory);
         // Save bot response
         const botMessage = await prisma_1.prisma.chatMessage.create({
-            data: botResponseData
+            data: botResponseData,
         });
         // Get updated conversation
         const messages = await prisma_1.prisma.chatMessage.findMany({
             where: { sessionId },
-            orderBy: { timestamp: 'asc' },
-            take: 50
+            orderBy: { timestamp: "asc" },
+            take: 50,
         });
         return res.status(200).json({
             success: true,
@@ -219,16 +226,16 @@ const sendMessage = async (req, res) => {
                 userMessage,
                 botMessage,
                 messages,
-                sessionId
-            }
+                sessionId,
+            },
         });
     }
     catch (error) {
-        console.error('Error sending message:', error);
+        console.error("Error sending message:", error);
         return res.status(500).json({
             success: false,
-            message: 'Failed to send message',
-            error: error.message
+            message: "Failed to send message",
+            error: error.message,
         });
     }
 };
@@ -238,27 +245,27 @@ const getChatHistory = async (req, res) => {
     try {
         const sessionId = getStringParam(req.params.sessionId);
         if (!sessionId)
-            return res.status(400).json({ error: 'Session ID is required' });
+            return res.status(400).json({ error: "Session ID is required" });
         const messages = await prisma_1.prisma.chatMessage.findMany({
             where: { sessionId },
-            orderBy: { timestamp: 'asc' },
-            take: 100
+            orderBy: { timestamp: "asc" },
+            take: 100,
         });
         return res.status(200).json({
             success: true,
             data: {
                 sessionId,
                 messages,
-                total: messages.length
-            }
+                total: messages.length,
+            },
         });
     }
     catch (error) {
-        console.error('Error getting chat history:', error);
+        console.error("Error getting chat history:", error);
         return res.status(500).json({
             success: false,
-            message: 'Failed to get chat history',
-            error: error.message
+            message: "Failed to get chat history",
+            error: error.message,
         });
     }
 };
@@ -268,26 +275,26 @@ const markAsRead = async (req, res) => {
     try {
         const sessionId = getStringParam(req.params.sessionId);
         if (!sessionId)
-            return res.status(400).json({ error: 'Session ID is required' });
+            return res.status(400).json({ error: "Session ID is required" });
         await prisma_1.prisma.chatMessage.updateMany({
             where: {
                 sessionId,
-                sender: client_1.ChatSender.USER,
-                isRead: false
+                sender: enums_1.ChatSender.USER,
+                isRead: false,
             },
-            data: { isRead: true }
+            data: { isRead: true },
         });
         return res.status(200).json({
             success: true,
-            message: 'Messages marked as read'
+            message: "Messages marked as read",
         });
     }
     catch (error) {
-        console.error('Error marking messages as read:', error);
+        console.error("Error marking messages as read:", error);
         return res.status(500).json({
             success: false,
-            message: 'Failed to mark messages as read',
-            error: error.message
+            message: "Failed to mark messages as read",
+            error: error.message,
         });
     }
 };
@@ -297,25 +304,25 @@ const getUnreadCount = async (req, res) => {
     try {
         const sessionId = getStringParam(req.params.sessionId);
         if (!sessionId)
-            return res.status(400).json({ error: 'Session ID is required' });
+            return res.status(400).json({ error: "Session ID is required" });
         const count = await prisma_1.prisma.chatMessage.count({
             where: {
                 sessionId,
-                sender: client_1.ChatSender.USER,
-                isRead: false
-            }
+                sender: enums_1.ChatSender.USER,
+                isRead: false,
+            },
         });
         return res.status(200).json({
             success: true,
-            data: { unreadCount: count }
+            data: { unreadCount: count },
         });
     }
     catch (error) {
-        console.error('Error getting unread count:', error);
+        console.error("Error getting unread count:", error);
         return res.status(500).json({
             success: false,
-            message: 'Failed to get unread count',
-            error: error.message
+            message: "Failed to get unread count",
+            error: error.message,
         });
     }
 };

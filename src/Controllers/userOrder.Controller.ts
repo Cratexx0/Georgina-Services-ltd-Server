@@ -63,16 +63,14 @@ export const userOrderController = {
 				select: { id: true, images: true },
 			});
 
-			const productMap = products.reduce(
-				(
-					map: Record<number, any>,
-					product: { id: string | number; images: any[] },
-				) => {
-					map[Number(product.id)] = product;
-					return map;
-				},
-				{},
-			);
+			const productMap: Record<number, (typeof products)[number]> =
+				products.reduce(
+					(map, product) => {
+						map[Number(product.id)] = product;
+						return map;
+					},
+					{} as Record<number, (typeof products)[number]>,
+				);
 
 			const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 

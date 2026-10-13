@@ -151,8 +151,8 @@ export const getCategoryTree = async (
 
 		const buildTree = (parentId: string | null = null): CategoryTreeItem[] => {
 			return allCategories
-				.filter((cat: { parentId: string | null }) => cat.parentId === parentId)
-				.map((cat: { id: string | null | undefined }) => ({
+				.filter((cat) => cat.parentId === parentId)
+				.map((cat) => ({
 					...cat,
 					children: buildTree(cat.id),
 				}));

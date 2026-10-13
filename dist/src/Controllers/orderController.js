@@ -10,8 +10,12 @@ const purchaseItem = async (req, res) => {
         const parsedProductId = Number(productId);
         const qty = parseInt(quantity, 10) || 1;
         const [user, product] = await Promise.all([
-            prisma_1.prisma.user.findUnique({ where: { id: isNaN(parsedUserId) ? userId : parsedUserId } }),
-            prisma_1.prisma.product.findUnique({ where: { id: isNaN(parsedProductId) ? productId : parsedProductId } }),
+            prisma_1.prisma.user.findUnique({
+                where: { id: isNaN(parsedUserId) ? userId : parsedUserId },
+            }),
+            prisma_1.prisma.product.findUnique({
+                where: { id: isNaN(parsedProductId) ? productId : parsedProductId },
+            }),
         ]);
         if (!user || !product) {
             return res.status(404).json({ message: "User or Product not found" });
@@ -19,7 +23,9 @@ const purchaseItem = async (req, res) => {
         const totalAmount = Number(product.price) * qty;
         // Safely extract the first image string from the JSON images field
         let imageUrl = null;
-        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+        if (product.images &&
+            Array.isArray(product.images) &&
+            product.images.length > 0) {
             imageUrl = String(product.images[0]);
         }
         // Generate a unique order number required by your Order schema
@@ -55,7 +61,9 @@ const purchaseItem = async (req, res) => {
     }
     catch (error) {
         console.error("Error placing order:", error);
-        return res.status(500).json({ message: "Internal server error", error: error.message });
+        return res
+            .status(500)
+            .json({ message: "Internal server error", error: error.message });
     }
 };
 exports.purchaseItem = purchaseItem;
@@ -80,13 +88,18 @@ const getUserPurchase = async (req, res) => {
             orderBy: { createdAt: "desc" },
         });
         if (!orders || orders.length === 0) {
-            return res.status(404).json({ message: "No purchases found for this user" });
+            return res
+                .status(404)
+                .json({ message: "No purchases found for this user" });
         }
         // Extract products from order items safely
         const products = orders.flatMap((order) => order.items.map((item) => {
             const prod = item.product;
             let fallbackImage = null;
-            if (prod && prod.images && Array.isArray(prod.images) && prod.images.length > 0) {
+            if (prod &&
+                prod.images &&
+                Array.isArray(prod.images) &&
+                prod.images.length > 0) {
                 fallbackImage = String(prod.images[0]);
             }
             return {
