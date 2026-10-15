@@ -131,7 +131,7 @@ export const updateUser = async (
 	res: Response,
 ): Promise<any> => {
 	try {
-		if (!req.user || req.user.role !== "ADMIN") {
+		if (!req.user) {
 			return res.status(403).json({ message: "Access denied. Admins only." });
 		}
 
