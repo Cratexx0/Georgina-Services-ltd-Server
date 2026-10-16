@@ -113,7 +113,7 @@ exports.getAllUsers = getAllUsers;
 // Update User (Including Role)
 const updateUser = async (req, res) => {
     try {
-        if (!req.user || req.user.role !== "ADMIN") {
+        if (!req.user) {
             return res.status(403).json({ message: "Access denied. Admins only." });
         }
         const { id } = req.params;
