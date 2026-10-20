@@ -17,9 +17,10 @@ router.post('/api/reviews/:reviewId/helpful', authenticate_1.default, reviewCont
 // Authenticated user: list their own reviews
 router.get('/api/users/:userId/reviews', authenticate_1.default, reviewController_1.getUserReviews);
 // Admin: reply to a review
-router.post('/api/reviews/:reviewId/reply', authenticate_1.default, (0, Middelware_1.authorizeRoles)('admin'), reviewController_1.replyToReview);
+router.post('/api/reviews/:reviewId/reply', authenticate_1.default, (0, Middelware_1.authorizeRoles)('ADMIN'), reviewController_1.replyToReview);
 // Admin: get/manage all reviews
-router.get('/api/admin/reviews', authenticate_1.default, (0, Middelware_1.authorizeRoles)('admin'), reviewController_1.getAllReviews);
-router.patch('/api/admin/reviews/:reviewId/status', authenticate_1.default, (0, Middelware_1.authorizeRoles)('admin'), reviewController_1.updateReviewStatus);
-router.delete('/api/admin/reviews/:reviewId', authenticate_1.default, (0, Middelware_1.authorizeRoles)('admin'), reviewController_1.deleteReview);
+router.get('/api/admin/reviews', authenticate_1.default, (0, Middelware_1.authorizeRoles)('ADMIN'), reviewController_1.getAllReviews);
+https: //georgina-services-ltd-server.onrender.com/api/admin/reviews
+ router.patch('/api/admin/reviews/:reviewId/status', authenticate_1.default, (0, Middelware_1.authorizeRoles)('ADMIN'), reviewController_1.updateReviewStatus);
+router.delete('/api/admin/reviews/:reviewId', authenticate_1.default, (0, Middelware_1.authorizeRoles)('ADMIN'), reviewController_1.deleteReview);
 exports.default = router;
