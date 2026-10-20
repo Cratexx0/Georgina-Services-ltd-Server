@@ -12,12 +12,12 @@ import {
 } from "../Controllers/paymentController";
 
 import { Protect, requireRole } from "../Middleware/Middelware";
-router.post("/api/payment", Protect, requireRole(['USER']), PaymentIntent);
-router.post("/api/payment/checkout", Protect, requireRole(['USER']), createEmbeddedCheckout);
+router.post("/api/payment",  PaymentIntent);
+router.post("/api/payment/checkout", createEmbeddedCheckout);
 
 
-router.get("/api/session-status", Protect, requireRole(['USER']), getSessionStatus);
-router.post("/api/confirm-payment", Protect, requireRole(['USER']), confirmPayment);
+router.get("/api/session-status", getSessionStatus);
+router.post("/api/confirm-payment", confirmPayment);
 
 // Webhook route
 router.post("/api/webhook", stripeWebhook);
