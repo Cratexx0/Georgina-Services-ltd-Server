@@ -6,10 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // routes/wishlistRoute.js
 const express_1 = __importDefault(require("express"));
 const router = express_1.default.Router();
+const Middelware_1 = require("../Middleware/Middelware");
 // CORRECT: Import the controller functions
 const wishListController_1 = require("../Controllers/wishListController");
 // CORRECT: Route definitions - each route calls a function
-router.post('/api/wishlist/add', wishListController_1.addToWishlist);
+router.post('/api/wishlist/add', Middelware_1.Protect, (0, Middelware_1.requireRole)(['USER']), wishListController_1.addToWishlist);
 router.get('/api/wishlist/my-wishlist', wishListController_1.getWishlist);
 router.get('/api/wishlist/check/:productId', wishListController_1.checkWishlist);
 router.delete('/api/wishlist/remove/:productId', wishListController_1.removeFromWishlist);

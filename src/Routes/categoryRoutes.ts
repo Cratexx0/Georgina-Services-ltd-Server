@@ -21,7 +21,7 @@ const router = express.Router();
  * 🛒 Public & General Category Routes
  */
 router.get('/api/categories', getCategories);
-router.get('/api/categories-tree', getCategoryTree);
+router.get('/api/categories-tree', getCategoryTree); // <-- Now matches /api/categories-tree correctly
 
 // Structured path routes (MUST be placed before general :id routes to prevent parameter hijacking)
 router.get('/api/categories/level/:level', getCategoriesByLevel);
@@ -48,49 +48,49 @@ router.get('/api/categories/:id', getCategoryById);
 router.post(
   '/api/admin/categories',
   Protect,
-  requireRole(['ADMIN']), // Wrapped in array
+  requireRole(['ADMIN']),
   createCategory
 );
 
 router.post(
   '/api/admin/categories/bulk',
   Protect,
-  requireRole(['ADMIN']), // Wrapped in array
+  requireRole(['ADMIN']),
   bulkCreateCategories
 );
 
 router.put(
   '/api/admin/categories/:id',
   Protect,
-  requireRole(['ADMIN']), // Wrapped in array
+  requireRole(['ADMIN']),
   updateCategory
 );
 
 router.delete(
   '/api/admin/categories/:id',
   Protect,
-  requireRole(['ADMIN']), // Wrapped in array
+  requireRole(['ADMIN']),
   deleteCategory
 );
 
 router.delete(
   '/api/admin/categories/:id/safe',
   Protect,
-  requireRole(['ADMIN']), // Wrapped in array
+  requireRole(['ADMIN']),
   safeDeleteCategory
 );
 
 router.delete(
   '/api/admin/categories/:parentId/subcategories',
   Protect,
-  requireRole(['ADMIN']), // Wrapped in array
+  requireRole(['ADMIN']),
   deleteSubcategories
 );
 
 router.delete(
   '/api/admin/categories/:parentId/subcategories/:subcategoryId',
   Protect,
-  requireRole(['ADMIN']), // Wrapped in array
+  requireRole(['ADMIN']),
   deleteSubcategory
 );
 

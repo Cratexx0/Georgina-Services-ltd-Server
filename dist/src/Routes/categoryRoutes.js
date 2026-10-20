@@ -11,7 +11,7 @@ const router = express_1.default.Router();
  * 🛒 Public & General Category Routes
  */
 router.get('/api/categories', categoryController_1.getCategories);
-router.get('/api/categories-tree', categoryController_1.getCategoryTree);
+router.get('/api/categories-tree', categoryController_1.getCategoryTree); // <-- Now matches /api/categories-tree correctly
 // Structured path routes (MUST be placed before general :id routes to prevent parameter hijacking)
 router.get('/api/categories/level/:level', categoryController_1.getCategoriesByLevel);
 router.get('/api/categories/parent/:parentId/children', categoryController_1.getSubcategories);
@@ -30,18 +30,11 @@ router.get('/api/categories/:id', categoryController_1.getCategoryById);
 /**
  * 🛠️ Admin Category Routes — Requires Authentication and Admin Role
  */
-router.post('/api/admin/categories', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), // Wrapped in array
-categoryController_1.createCategory);
-router.post('/api/admin/categories/bulk', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), // Wrapped in array
-categoryController_1.bulkCreateCategories);
-router.put('/api/admin/categories/:id', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), // Wrapped in array
-categoryController_1.updateCategory);
-router.delete('/api/admin/categories/:id', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), // Wrapped in array
-categoryController_1.deleteCategory);
-router.delete('/api/admin/categories/:id/safe', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), // Wrapped in array
-categoryController_1.safeDeleteCategory);
-router.delete('/api/admin/categories/:parentId/subcategories', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), // Wrapped in array
-categoryController_1.deleteSubcategories);
-router.delete('/api/admin/categories/:parentId/subcategories/:subcategoryId', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), // Wrapped in array
-categoryController_1.deleteSubcategory);
+router.post('/api/admin/categories', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), categoryController_1.createCategory);
+router.post('/api/admin/categories/bulk', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), categoryController_1.bulkCreateCategories);
+router.put('/api/admin/categories/:id', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), categoryController_1.updateCategory);
+router.delete('/api/admin/categories/:id', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), categoryController_1.deleteCategory);
+router.delete('/api/admin/categories/:id/safe', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), categoryController_1.safeDeleteCategory);
+router.delete('/api/admin/categories/:parentId/subcategories', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), categoryController_1.deleteSubcategories);
+router.delete('/api/admin/categories/:parentId/subcategories/:subcategoryId', Middelware_1.Protect, (0, Middelware_1.requireRole)(['ADMIN']), categoryController_1.deleteSubcategory);
 exports.default = router;
