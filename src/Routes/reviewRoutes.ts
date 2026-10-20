@@ -17,6 +17,7 @@ import authenticate from "../Utils/authenticate";
 // Public: list reviews for a product
 router.get('/api/products/:productId/reviews', getProductReviews);
 
+
 // Authenticated user: create a review
 router.post('/api/products/:productId/reviews', authenticate, createReview);
 
@@ -30,7 +31,7 @@ router.get('/api/users/:userId/reviews', authenticate, getUserReviews);
 router.post(
   '/api/reviews/:reviewId/reply',
   authenticate,
-  authorizeRoles('admin'),
+  authorizeRoles('ADMIN'),
   replyToReview
 );
 
@@ -38,19 +39,20 @@ router.post(
 router.get(
   '/api/admin/reviews',
   authenticate,
-  authorizeRoles('admin'),
+  authorizeRoles('ADMIN'),
   getAllReviews
 );
+
 router.patch(
   '/api/admin/reviews/:reviewId/status',
   authenticate,
-  authorizeRoles('admin'),
+  authorizeRoles('ADMIN'),
   updateReviewStatus
 );
 router.delete(
   '/api/admin/reviews/:reviewId',
   authenticate,
-  authorizeRoles('admin'),
+  authorizeRoles('ADMIN'),
   deleteReview
 );
 
