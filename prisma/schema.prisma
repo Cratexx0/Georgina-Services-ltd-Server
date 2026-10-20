@@ -39,12 +39,13 @@ enum UserRole {
 
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  slug        String   @unique
-  description String?
-  price       Decimal  @db.Decimal(10, 2)
-  discount    Decimal  @default(0) @db.Decimal(5, 2)
+  id            Int      @id @default(autoincrement())
+  name          String
+  slug          String   @unique
+  sku           String?  // <--- ADD THIS LINE HERE
+  description   String?
+  price         Decimal  @db.Decimal(10, 2)
+  discount      Decimal  @default(0) @db.Decimal(5, 2)
 
   categoryLevel1 String
   categoryLevel2 String?
@@ -67,7 +68,7 @@ model Product {
   isNewArrival Boolean @default(false)
 
   featuredOrder   Int @default(0)
-  trendingOrder  Int @default(0)
+  trendingOrder   Int @default(0)
   newArrivalOrder Int @default(0)
 
   wishList Boolean @default(false)

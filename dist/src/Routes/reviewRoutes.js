@@ -20,7 +20,6 @@ router.get('/api/users/:userId/reviews', authenticate_1.default, reviewControlle
 router.post('/api/reviews/:reviewId/reply', authenticate_1.default, (0, Middelware_1.authorizeRoles)('ADMIN'), reviewController_1.replyToReview);
 // Admin: get/manage all reviews
 router.get('/api/admin/reviews', authenticate_1.default, (0, Middelware_1.authorizeRoles)('ADMIN'), reviewController_1.getAllReviews);
-https: //georgina-services-ltd-server.onrender.com/api/admin/reviews
- router.patch('/api/admin/reviews/:reviewId/status', authenticate_1.default, (0, Middelware_1.authorizeRoles)('ADMIN'), reviewController_1.updateReviewStatus);
+router.patch('/api/admin/reviews/:reviewId/status', authenticate_1.default, (0, Middelware_1.authorizeRoles)('ADMIN'), reviewController_1.updateReviewStatus);
 router.delete('/api/admin/reviews/:reviewId', authenticate_1.default, (0, Middelware_1.authorizeRoles)('ADMIN'), reviewController_1.deleteReview);
 exports.default = router;
