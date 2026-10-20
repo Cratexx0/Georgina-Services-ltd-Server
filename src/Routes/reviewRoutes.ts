@@ -13,7 +13,7 @@ import {
   deleteReview
 } from '../Controllers/reviewController';
 import authenticate from "../Utils/authenticate";
-s
+
 // Public: list reviews for a product
 router.get('/api/products/:productId/reviews', getProductReviews);
 
