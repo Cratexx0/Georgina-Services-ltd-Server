@@ -42,7 +42,7 @@ router.get(
   authorizeRoles('ADMIN'),
   getAllReviews
 );
-https://georgina-services-ltd-server.onrender.com/api/admin/reviews
+
 router.patch(
   '/api/admin/reviews/:reviewId/status',
   authenticate,
