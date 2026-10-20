@@ -26,260 +26,528 @@ const extractPublicIdFromUrl = (url: string): string | null => {
 };
 
 // Create Product
+// export const createProducts = async (
+// 	req: Request,
+// 	res: Response,
+// ): Promise<any> => {
+// 	try {
+// 		const {
+// 			name,
+// 			description,
+// 			price,
+// 			categoryLevel1,
+// 			categoryLevel2,
+// 			categoryLevel3,
+// 			unit,
+// 			stock,
+// 			brand,
+// 			isActive,
+// 			isFeatured,
+// 			isTrending,
+// 			isNewArrival,
+// 			featuredOrder,
+// 			trendingOrder,
+// 			newArrivalOrder,
+// 			weight,
+// 			discount,
+// 			tags,
+// 			size,
+// 		} = req.body;
+
+// 		if (!name || !price || !categoryLevel1) {
+// 			return res
+// 				.status(400)
+// 				.json({ message: "Name, price, and categoryLevel1 are required" });
+// 		}
+
+// 		const imageUrl = req.file ? req.file.path : null;
+// 		if (!imageUrl) {
+// 			return res.status(400).json({ message: "Image is required" });
+// 		}
+
+// 		const slug = generateSlug(name);
+
+// 		const existingProduct = await prisma.product.findUnique({
+// 			where: { slug },
+// 		});
+// 		if (existingProduct) {
+// 			try {
+// 				const publicId = extractPublicIdFromUrl(imageUrl);
+// 				if (publicId) await cloudinary.uploader.destroy(publicId);
+// 			} catch (deleteError) {
+// 				console.error("Error deleting image from Cloudinary:", deleteError);
+// 			}
+// 			return res
+// 				.status(400)
+// 				.json({ message: "Product with similar name already exists" });
+// 		}
+
+// 		let tagsArray: string[] = [];
+// 		try {
+// 			tagsArray = typeof tags === "string" ? JSON.parse(tags) : tags || [];
+// 		} catch (e) {
+// 			tagsArray = [];
+// 		}
+
+// 		let sizeArray: string[] = [];
+// 		try {
+// 			sizeArray =
+// 				typeof size === "string"
+// 					? size
+// 							.split(",")
+// 							.map((s) => s.trim())
+// 							.filter(Boolean)
+// 					: size || [];
+// 		} catch (e) {
+// 			sizeArray = [];
+// 		}
+
+// 		const product = await prisma.product.create({
+// 			data: {
+// 				name,
+// 				slug,
+// 				description: description || null,
+// 				weight: weight || null,
+// 				price: parseFloat(price),
+// 				discount: discount ? parseFloat(discount) : 0,
+// 				categoryLevel1,
+// 				categoryLevel2: categoryLevel2 || null,
+// 				categoryLevel3: categoryLevel3 || null,
+// 				unit: unit || "piece",
+// 				stock: stock ? parseInt(stock) : 0,
+// 				images: [imageUrl],
+// 				isActive:
+// 					isActive !== undefined
+// 						? isActive === "true" || isActive === true
+// 						: true,
+// 				isFeatured: isFeatured === "true" || isFeatured === true,
+// 				isTrending: isTrending === "true" || isTrending === true,
+// 				isNewArrival: isNewArrival === "true" || isNewArrival === true,
+// 				featuredOrder: featuredOrder ? parseInt(featuredOrder) : 0,
+// 				trendingOrder: trendingOrder ? parseInt(trendingOrder) : 0,
+// 				newArrivalOrder: newArrivalOrder ? parseInt(newArrivalOrder) : 0,
+// 				tags: tagsArray,
+// 				size: sizeArray,
+// 				brand: brand || null,
+// 			},
+// 		});
+
+// 		return res
+// 			.status(201)
+// 			.json({ message: "Product created successfully", product });
+// 	} catch (error: any) {
+// 		if (req.file && req.file.path) {
+// 			try {
+// 				const publicId = extractPublicIdFromUrl(req.file.path);
+// 				if (publicId) await cloudinary.uploader.destroy(publicId);
+// 			} catch (deleteError) {
+// 				console.error("Error deleting image from Cloudinary:", deleteError);
+// 			}
+// 		}
+// 		console.error("Error creating product:", error);
+// 		return res
+// 			.status(500)
+// 			.json({ message: "Error creating product", error: error.message });
+// 	}
+// };
+
+// // Update Product
+// export const updateProduct = async (
+// 	req: Request,
+// 	res: Response,
+// ): Promise<any> => {
+// 	try {
+// 		const { productId } = req.params;
+// 		const parsedId = Number(productId);
+// 		const queryId = isNaN(parsedId) ? (productId as any) : parsedId;
+
+// 		const product = await prisma.product.findUnique({ where: { id: queryId } });
+// 		if (!product) {
+// 			return res.status(404).json({ message: "Product not found" });
+// 		}
+
+// 		const updateData: any = { ...req.body };
+
+// 		if (req.file) {
+// 			const newImageUrl = req.file.path;
+// 			if (product.images && Array.isArray(product.images)) {
+// 				for (const oldImageUrl of product.images as string[]) {
+// 					try {
+// 						const publicId = extractPublicIdFromUrl(oldImageUrl);
+// 						if (publicId) {
+// 							await cloudinary.uploader.destroy(publicId);
+// 						}
+// 					} catch (deleteError) {
+// 						console.error(
+// 							"Error deleting old image from Cloudinary:",
+// 							deleteError,
+// 						);
+// 					}
+// 				}
+// 			}
+// 			updateData.images = [newImageUrl];
+// 		}
+
+// 		if (updateData.name && updateData.name !== product.name) {
+// 			updateData.slug = generateSlug(updateData.name);
+// 			const existingProduct = await prisma.product.findFirst({
+// 				where: {
+// 					slug: updateData.slug,
+// 					NOT: { id: queryId },
+// 				},
+// 			});
+
+// 			if (existingProduct) {
+// 				if (req.file) {
+// 					try {
+// 						const publicId = extractPublicIdFromUrl(req.file.path);
+// 						if (publicId) await cloudinary.uploader.destroy(publicId);
+// 					} catch (deleteError) {
+// 						console.error("Error deleting image from Cloudinary:", deleteError);
+// 					}
+// 				}
+// 				return res
+// 					.status(400)
+// 					.json({ message: "Product with similar name already exists" });
+// 			}
+// 		}
+
+// 		if (updateData.price) updateData.price = parseFloat(updateData.price);
+// 		if (updateData.discount !== undefined)
+// 			updateData.discount = parseFloat(updateData.discount);
+// 		if (updateData.stock) updateData.stock = parseInt(updateData.stock);
+// 		if (updateData.featuredOrder)
+// 			updateData.featuredOrder = parseInt(updateData.featuredOrder);
+// 		if (updateData.trendingOrder)
+// 			updateData.trendingOrder = parseInt(updateData.trendingOrder);
+// 		if (updateData.newArrivalOrder)
+// 			updateData.newArrivalOrder = parseInt(updateData.newArrivalOrder);
+
+// 		if (updateData.tags) {
+// 			updateData.tags =
+// 				typeof updateData.tags === "string"
+// 					? JSON.parse(updateData.tags)
+// 					: updateData.tags;
+// 		}
+// 		if (updateData.size) {
+// 			updateData.size =
+// 				typeof updateData.size === "string"
+// 					? updateData.size
+// 							.split(",")
+// 							.map((s: string) => s.trim())
+// 							.filter(Boolean)
+// 					: updateData.size;
+// 		}
+// 		if (updateData.isActive !== undefined) {
+// 			updateData.isActive =
+// 				updateData.isActive === "true" || updateData.isActive === true;
+// 		}
+// 		if (updateData.isFeatured !== undefined) {
+// 			updateData.isFeatured =
+// 				updateData.isFeatured === "true" || updateData.isFeatured === true;
+// 		}
+// 		if (updateData.isTrending !== undefined) {
+// 			updateData.isTrending =
+// 				updateData.isTrending === "true" || updateData.isTrending === true;
+// 		}
+// 		if (updateData.isNewArrival !== undefined) {
+// 			updateData.isNewArrival =
+// 				updateData.isNewArrival === "true" || updateData.isNewArrival === true;
+// 		}
+
+// 		const updatedProduct = await prisma.product.update({
+// 			where: { id: queryId },
+// 			data: updateData,
+// 		});
+
+// 		return res
+// 			.status(200)
+// 			.json({
+// 				product: updatedProduct,
+// 				message: "Product updated successfully",
+// 			});
+// 	} catch (error: any) {
+// 		if (req.file && req.file.path) {
+// 			try {
+// 				const publicId = extractPublicIdFromUrl(req.file.path);
+// 				if (publicId) await cloudinary.uploader.destroy(publicId);
+// 			} catch (deleteError) {
+// 				console.error("Error deleting image from Cloudinary:", deleteError);
+// 			}
+// 		}
+// 		console.error("Error updating product:", error);
+// 		return res
+// 			.status(500)
+// 			.json({ error: "Error updating product", message: error.message });
+// 	}
+// };
+
+
+// Create Product
 export const createProducts = async (
-	req: Request,
-	res: Response,
+    req: Request,
+    res: Response,
 ): Promise<any> => {
-	try {
-		const {
-			name,
-			description,
-			price,
-			categoryLevel1,
-			categoryLevel2,
-			categoryLevel3,
-			unit,
-			stock,
-			brand,
-			isActive,
-			isFeatured,
-			isTrending,
-			isNewArrival,
-			featuredOrder,
-			trendingOrder,
-			newArrivalOrder,
-			weight,
-			discount,
-			tags,
-			size,
-		} = req.body;
+    try {
+        const {
+            name,
+            description,
+            price,
+            sku, // <-- Added sku
+            categoryLevel1,
+            categoryLevel2,
+            categoryLevel3,
+            unit,
+            stock,
+            brand,
+            isActive,
+            isFeatured,
+            isTrending,
+            isNewArrival,
+            featuredOrder,
+            trendingOrder,
+            newArrivalOrder,
+            weight,
+            discount,
+            tags,
+            size,
+            wishList, // <-- Added wishList handling
+        } = req.body;
 
-		if (!name || !price || !categoryLevel1) {
-			return res
-				.status(400)
-				.json({ message: "Name, price, and categoryLevel1 are required" });
-		}
+        if (!name || !price || !categoryLevel1) {
+            return res
+                .status(400)
+                .json({ message: "Name, price, and categoryLevel1 are required" });
+        }
 
-		const imageUrl = req.file ? req.file.path : null;
-		if (!imageUrl) {
-			return res.status(400).json({ message: "Image is required" });
-		}
+        const imageUrl = req.file ? req.file.path : null;
+        if (!imageUrl) {
+            return res.status(400).json({ message: "Image is required" });
+        }
 
-		const slug = generateSlug(name);
+        const slug = generateSlug(name);
 
-		const existingProduct = await prisma.product.findUnique({
-			where: { slug },
-		});
-		if (existingProduct) {
-			try {
-				const publicId = extractPublicIdFromUrl(imageUrl);
-				if (publicId) await cloudinary.uploader.destroy(publicId);
-			} catch (deleteError) {
-				console.error("Error deleting image from Cloudinary:", deleteError);
-			}
-			return res
-				.status(400)
-				.json({ message: "Product with similar name already exists" });
-		}
+        const existingProduct = await prisma.product.findUnique({
+            where: { slug },
+        });
+        if (existingProduct) {
+            try {
+                const publicId = extractPublicIdFromUrl(imageUrl);
+                if (publicId) await cloudinary.uploader.destroy(publicId);
+            } catch (deleteError) {
+                console.error("Error deleting image from Cloudinary:", deleteError);
+            }
+            return res
+                .status(400)
+                .json({ message: "Product with similar name already exists" });
+        }
 
-		let tagsArray: string[] = [];
-		try {
-			tagsArray = typeof tags === "string" ? JSON.parse(tags) : tags || [];
-		} catch (e) {
-			tagsArray = [];
-		}
+        let tagsArray: string[] = [];
+        try {
+            tagsArray = typeof tags === "string" ? JSON.parse(tags) : tags || [];
+        } catch (e) {
+            tagsArray = [];
+        }
 
-		let sizeArray: string[] = [];
-		try {
-			sizeArray =
-				typeof size === "string"
-					? size
-							.split(",")
-							.map((s) => s.trim())
-							.filter(Boolean)
-					: size || [];
-		} catch (e) {
-			sizeArray = [];
-		}
+        let sizeArray: string[] = [];
+        try {
+            sizeArray =
+                typeof size === "string"
+                    ? size
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean)
+                    : size || [];
+        } catch (e) {
+            sizeArray = [];
+        }
 
-		const product = await prisma.product.create({
-			data: {
-				name,
-				slug,
-				description: description || null,
-				weight: weight || null,
-				price: parseFloat(price),
-				discount: discount ? parseFloat(discount) : 0,
-				categoryLevel1,
-				categoryLevel2: categoryLevel2 || null,
-				categoryLevel3: categoryLevel3 || null,
-				unit: unit || "piece",
-				stock: stock ? parseInt(stock) : 0,
-				images: [imageUrl],
-				isActive:
-					isActive !== undefined
-						? isActive === "true" || isActive === true
-						: true,
-				isFeatured: isFeatured === "true" || isFeatured === true,
-				isTrending: isTrending === "true" || isTrending === true,
-				isNewArrival: isNewArrival === "true" || isNewArrival === true,
-				featuredOrder: featuredOrder ? parseInt(featuredOrder) : 0,
-				trendingOrder: trendingOrder ? parseInt(trendingOrder) : 0,
-				newArrivalOrder: newArrivalOrder ? parseInt(newArrivalOrder) : 0,
-				tags: tagsArray,
-				size: sizeArray,
-				brand: brand || null,
-			},
-		});
+        const product = await prisma.product.create({
+            data: {
+                name,
+                slug,
+                sku: sku || null, // <-- Saved to prisma
+                description: description || null,
+                weight: weight || null,
+                price: parseFloat(price),
+                discount: discount ? parseFloat(discount) : 0,
+                categoryLevel1,
+                categoryLevel2: categoryLevel2 || null,
+                categoryLevel3: categoryLevel3 || null,
+                unit: unit || "piece",
+                stock: stock ? parseInt(stock) : 0,
+                images: [imageUrl],
+                isActive:
+                    isActive !== undefined
+                        ? isActive === "true" || isActive === true
+                        : true,
+                isFeatured: isFeatured === "true" || isFeatured === true,
+                isTrending: isTrending === "true" || isTrending === true,
+                isNewArrival: isNewArrival === "true" || isNewArrival === true,
+                wishList: wishList === "true" || wishList === true, // <-- Proper boolean conversion
+                featuredOrder: featuredOrder ? parseInt(featuredOrder) : 0,
+                trendingOrder: trendingOrder ? parseInt(trendingOrder) : 0,
+                newArrivalOrder: newArrivalOrder ? parseInt(newArrivalOrder) : 0,
+                tags: tagsArray,
+                size: sizeArray,
+                brand: brand || null,
+            },
+        });
 
-		return res
-			.status(201)
-			.json({ message: "Product created successfully", product });
-	} catch (error: any) {
-		if (req.file && req.file.path) {
-			try {
-				const publicId = extractPublicIdFromUrl(req.file.path);
-				if (publicId) await cloudinary.uploader.destroy(publicId);
-			} catch (deleteError) {
-				console.error("Error deleting image from Cloudinary:", deleteError);
-			}
-		}
-		console.error("Error creating product:", error);
-		return res
-			.status(500)
-			.json({ message: "Error creating product", error: error.message });
-	}
+        return res
+            .status(201)
+            .json({ message: "Product created successfully", product });
+    } catch (error: any) {
+        if (req.file && req.file.path) {
+            try {
+                const publicId = extractPublicIdFromUrl(req.file.path);
+                if (publicId) await cloudinary.uploader.destroy(publicId);
+            } catch (deleteError) {
+                console.error("Error deleting image from Cloudinary:", deleteError);
+            }
+        }
+        console.error("Error creating product:", error);
+        return res
+            .status(500)
+            .json({ message: "Error creating product", error: error.message });
+    }
 };
 
 // Update Product
 export const updateProduct = async (
-	req: Request,
-	res: Response,
+    req: Request,
+    res: Response,
 ): Promise<any> => {
-	try {
-		const { productId } = req.params;
-		const parsedId = Number(productId);
-		const queryId = isNaN(parsedId) ? (productId as any) : parsedId;
+    try {
+        const { productId } = req.params;
+        const parsedId = Number(productId);
+        const queryId = isNaN(parsedId) ? (productId as any) : parsedId;
 
-		const product = await prisma.product.findUnique({ where: { id: queryId } });
-		if (!product) {
-			return res.status(404).json({ message: "Product not found" });
-		}
+        const product = await prisma.product.findUnique({ where: { id: queryId } });
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
 
-		const updateData: any = { ...req.body };
+        const updateData: any = { ...req.body };
 
-		if (req.file) {
-			const newImageUrl = req.file.path;
-			if (product.images && Array.isArray(product.images)) {
-				for (const oldImageUrl of product.images as string[]) {
-					try {
-						const publicId = extractPublicIdFromUrl(oldImageUrl);
-						if (publicId) {
-							await cloudinary.uploader.destroy(publicId);
-						}
-					} catch (deleteError) {
-						console.error(
-							"Error deleting old image from Cloudinary:",
-							deleteError,
-						);
-					}
-				}
-			}
-			updateData.images = [newImageUrl];
-		}
+        if (req.file) {
+            const newImageUrl = req.file.path;
+            if (product.images && Array.isArray(product.images)) {
+                for (const oldImageUrl of product.images as string[]) {
+                    try {
+                        const publicId = extractPublicIdFromUrl(oldImageUrl);
+                        if (publicId) {
+                            await cloudinary.uploader.destroy(publicId);
+                        }
+                    } catch (deleteError) {
+                        console.error(
+                            "Error deleting old image from Cloudinary:",
+                            deleteError,
+                        );
+                    }
+                }
+            }
+            updateData.images = [newImageUrl];
+        }
 
-		if (updateData.name && updateData.name !== product.name) {
-			updateData.slug = generateSlug(updateData.name);
-			const existingProduct = await prisma.product.findFirst({
-				where: {
-					slug: updateData.slug,
-					NOT: { id: queryId },
-				},
-			});
+        if (updateData.name && updateData.name !== product.name) {
+            updateData.slug = generateSlug(updateData.name);
+            const existingProduct = await prisma.product.findFirst({
+                where: {
+                    slug: updateData.slug,
+                    NOT: { id: queryId },
+                },
+            });
 
-			if (existingProduct) {
-				if (req.file) {
-					try {
-						const publicId = extractPublicIdFromUrl(req.file.path);
-						if (publicId) await cloudinary.uploader.destroy(publicId);
-					} catch (deleteError) {
-						console.error("Error deleting image from Cloudinary:", deleteError);
-					}
-				}
-				return res
-					.status(400)
-					.json({ message: "Product with similar name already exists" });
-			}
-		}
+            if (existingProduct) {
+                if (req.file) {
+                    try {
+                        const publicId = extractPublicIdFromUrl(req.file.path);
+                        if (publicId) await cloudinary.uploader.destroy(publicId);
+                    } catch (deleteError) {
+                        console.error("Error deleting image from Cloudinary:", deleteError);
+                    }
+                }
+                return res
+                    .status(400)
+                    .json({ message: "Product with similar name already exists" });
+            }
+        }
 
-		if (updateData.price) updateData.price = parseFloat(updateData.price);
-		if (updateData.discount !== undefined)
-			updateData.discount = parseFloat(updateData.discount);
-		if (updateData.stock) updateData.stock = parseInt(updateData.stock);
-		if (updateData.featuredOrder)
-			updateData.featuredOrder = parseInt(updateData.featuredOrder);
-		if (updateData.trendingOrder)
-			updateData.trendingOrder = parseInt(updateData.trendingOrder);
-		if (updateData.newArrivalOrder)
-			updateData.newArrivalOrder = parseInt(updateData.newArrivalOrder);
+        if (updateData.price) updateData.price = parseFloat(updateData.price);
+        if (updateData.discount !== undefined)
+            updateData.discount = parseFloat(updateData.discount);
+        if (updateData.stock) updateData.stock = parseInt(updateData.stock);
+        if (updateData.featuredOrder)
+            updateData.featuredOrder = parseInt(updateData.featuredOrder);
+        if (updateData.trendingOrder)
+            updateData.trendingOrder = parseInt(updateData.trendingOrder);
+        if (updateData.newArrivalOrder)
+            updateData.newArrivalOrder = parseInt(updateData.newArrivalOrder);
 
-		if (updateData.tags) {
-			updateData.tags =
-				typeof updateData.tags === "string"
-					? JSON.parse(updateData.tags)
-					: updateData.tags;
-		}
-		if (updateData.size) {
-			updateData.size =
-				typeof updateData.size === "string"
-					? updateData.size
-							.split(",")
-							.map((s: string) => s.trim())
-							.filter(Boolean)
-					: updateData.size;
-		}
-		if (updateData.isActive !== undefined) {
-			updateData.isActive =
-				updateData.isActive === "true" || updateData.isActive === true;
-		}
-		if (updateData.isFeatured !== undefined) {
-			updateData.isFeatured =
-				updateData.isFeatured === "true" || updateData.isFeatured === true;
-		}
-		if (updateData.isTrending !== undefined) {
-			updateData.isTrending =
-				updateData.isTrending === "true" || updateData.isTrending === true;
-		}
-		if (updateData.isNewArrival !== undefined) {
-			updateData.isNewArrival =
-				updateData.isNewArrival === "true" || updateData.isNewArrival === true;
-		}
+        if (updateData.tags) {
+            updateData.tags =
+                typeof updateData.tags === "string"
+                    ? JSON.parse(updateData.tags)
+                    : updateData.tags;
+        }
+        if (updateData.size) {
+            updateData.size =
+                typeof updateData.size === "string"
+                    ? updateData.size
+                          .split(",")
+                          .map((s: string) => s.trim())
+                          .filter(Boolean)
+                    : updateData.size;
+        }
 
-		const updatedProduct = await prisma.product.update({
-			where: { id: queryId },
-			data: updateData,
-		});
+        // Proper boolean transformations to fix Prisma type errors
+        if (updateData.isActive !== undefined) {
+            updateData.isActive =
+                updateData.isActive === "true" || updateData.isActive === true;
+        }
+        if (updateData.isFeatured !== undefined) {
+            updateData.isFeatured =
+                updateData.isFeatured === "true" || updateData.isFeatured === true;
+        }
+        if (updateData.isTrending !== undefined) {
+            updateData.isTrending =
+                updateData.isTrending === "true" || updateData.isTrending === true;
+        }
+        if (updateData.isNewArrival !== undefined) {
+            updateData.isNewArrival =
+                updateData.isNewArrival === "true" || updateData.isNewArrival === true;
+        }
+        if (updateData.wishList !== undefined) {
+            updateData.wishList =
+                updateData.wishList === "true" || updateData.wishList === true;
+        }
 
-		return res
-			.status(200)
-			.json({
-				product: updatedProduct,
-				message: "Product updated successfully",
-			});
-	} catch (error: any) {
-		if (req.file && req.file.path) {
-			try {
-				const publicId = extractPublicIdFromUrl(req.file.path);
-				if (publicId) await cloudinary.uploader.destroy(publicId);
-			} catch (deleteError) {
-				console.error("Error deleting image from Cloudinary:", deleteError);
-			}
-		}
-		console.error("Error updating product:", error);
-		return res
-			.status(500)
-			.json({ error: "Error updating product", message: error.message });
-	}
+        const updatedProduct = await prisma.product.update({
+            where: { id: queryId },
+            data: updateData,
+        });
+
+        return res
+            .status(200)
+            .json({
+                product: updatedProduct,
+                message: "Product updated successfully",
+            });
+    } catch (error: any) {
+        if (req.file && req.file.path) {
+            try {
+                const publicId = extractPublicIdFromUrl(req.file.path);
+                if (publicId) await cloudinary.uploader.destroy(publicId);
+            } catch (deleteError) {
+                console.error("Error deleting image from Cloudinary:", deleteError);
+            }
+        }
+        console.error("Error updating product:", error);
+        return res
+            .status(500)
+            .json({ error: "Error updating product", message: error.message });
+    }
 };
 
 // Get Products
