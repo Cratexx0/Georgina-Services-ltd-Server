@@ -54,7 +54,7 @@ app.use(
 
 			const allowedOrigins = [
 				"*",
-				"https://gsl-store-front.vercel.app/",
+				"https://gsl-store-front.vercel.app",
 				"https://georgina-services-limited-dashboard.vercel.app",
 				"https://georgina-services-ltd-server.onrender.com",
 				"http://localhost:8080",
