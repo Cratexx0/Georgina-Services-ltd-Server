@@ -55,13 +55,10 @@ app.use(
 			const allowedOrigins = [
 				"*",
 				"https://gsl-store-front.vercel.app",
-				"https://georgina-services-limited-dashboard.vercel.app",
+				"https://gsl-dashboard.vercel.app",
 				"https://georgina-services-ltd-server.onrender.com",
 				"http://localhost:8080",
 				"http://localhost:8081",
-				"http://localhost:8082",
-				"http://localhost:5173",
-				"http://localhost:3000",
 			];
 
 			if (allowedOrigins.includes(origin)) {
